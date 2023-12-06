@@ -1,0 +1,197 @@
+class AuthVerifierEngine(issuer, jwks_url, audience, algorithms)
+	A wrapper of auth0.authentication.token_verifier.TokenVerifier. The
+	auth0.authentication.token_verifier.TokenVerifier.verify  function is used
+	to validate id tokens.
+
+class AuthEngine
+	AuthEngine class facilitate with user authentication using Auth0 Python
+	SDK. It interacts with Auth0 endpoints to perform user authentication and
+	is compatible with various Django built-in modules and objects, including
+	the HttpRequest object. Most methods accept an optional HttpRequest object.
+	Successful authentication updates or creates session cookies in the
+	HttpRequest for future requests.
+
+	AuthEngine relies on several key pieces of information from the Django
+	project's settings to function: the Auth0 application's client ID and
+	client secret, the tenant domain, and the API audience. If any of these
+	required pieces of information are missing, an error will be raised.
+
+	Each AuthEngine object has these attributes:
+
+	AuthEngine.BACKEND_NAME.
+		String representing the name of the backend. Default is,
+		"django_auth0_engine.engine.AuthEngine"
+
+	AuthEngine.USERNAME_PASSWORD_REALM
+		String representing the Username-Password-Authentication realm of auth0.
+
+	class AuthEngine.Scopes:
+		OpenID Connect Scopes.
+
+		Scopes.REFRESH_TOKEN
+			Scope for refresh token.
+
+		Scopes.OPENID
+			Scope for OpenID Information.
+
+		Scopes.PROFILE
+			Scope for Profile Information.
+
+		Scopes.EMAIL
+			Scope for Email address.
+			
+		Scopes.DEFAULT
+			Scope used as default if no scopes are provided.
+
+	cached_property AuthEngine.issuer
+		Returns the issuer URL or None if the instance is unusable.
+
+	cached_property AuthEngine.jwks_url
+		Returns the JWKS URL or None if the instance is unusable.
+
+	cached_property AuthEngine.token_endpoint
+		Returns an instance of auth0.authentication.GetToken.
+
+	cached_property AuthEngine.database_endpoint
+		Returns an instance of auth0.authentication.Database.
+
+	cached_property AuthEngine.passwordless_endpoint
+		Returns an instance of auth0.authentication.Passwordless.
+
+	cached_property AuthEngine.user_endpoint
+		Returns an instance of auth0.authentication.Users.
+
+	cached_property AuthEngine.verifier
+		Returns an instance of AuthVerifierEngine initialized with issuer,
+		jwks_url, and audience.
+
+	These are all the methods AuthEngine object has:
+
+	AuthEngine.__bool__()
+		Determines if the instance is usable based on the availability of
+		required information.
+
+	AuthEngine.parse_response(response: str)
+	AuthEngine.parse_response(response: dict[str, Any])
+		Parse response received from different auth0 endpoints and return
+		different types of AuthEngineResponse instances including User and
+		AuthEngineError. It also parse auth data stored in request's session
+		cookies.
+		
+		If an id_token is present in response, it validates that using
+		AuthVerifierEngine.verify. If the token is valid, an User instance is
+		constructed from the informations of the id_token and returned. If the
+		token is expired and a refresh_token exists in response, it refreshes
+		the token by calling AuthEngine.refresh_token and return the response
+		received from it. In case, the token is invalid and AuthEngineError is
+		returned.
+
+	AuthEngine.to_session(response)
+		Converts a parsed response to a dictionary containing information
+		including access_token, refresh_token, id_token, token_type, and
+		expires_in for session storage.
+
+		The dict is stored in auth session, which is parsed by
+		AuthEngine.parse_response for authenticating subsequent requests.
+
+
+	AuthEngine.set_session(request, response)
+		Sets the authorization session in the HttpRequest object from dict
+		returned by AuthEngine.to_session. The session is modified only if
+		it's not the same as the existing session in the request.
+
+
+	AuthEngine.signin(request, username, password, [scope, realm, audience,
+	grant_type, forwarded_for, keep_signed_in])
+		Signs in a user with username, password, belonging to realm. grant_type
+		denotes the flow being used. Default is
+		http://auth0.com/oauth/grant-type/password-realm (from auth0 sdk).
+		forwarded_for is the End-user IP as a string value. It is used for
+		brute-force protection to work in server-side scenarios. keep_signed_in
+		defines whether or not to fetch a refresh token.
+
+		Upon authentication, it sets session in the request object and return a
+		User instance. Otherwise, an AuthEngineError instance with error
+		information is returned, request session is unchanged.
+
+		Example:
+
+		```
+		user = AUTH0_ENGINE_INSTANCE.signin(
+        	request,
+        	username="user@company.com",
+        	password="pas$w4rd",
+        	realm=AUTH0_ENGINE_INSTANCE.USERNAME_PASSWORD_REALM,
+        	keep_signed_in=True,
+    	)
+    	if user:
+    	    ...
+    	else:
+    	    ...
+
+		```
+
+	AuthEngine.signin_code(request, code, redirect_uri)
+		Signs in a user using the authorization code grant received from the
+		identity providers such as Google, Facebook, X, and Microsoft.
+
+		Upon parsing the response, it sets session in request and return a User
+		instance. Otherwise, an AuthEngineError instance with error
+		information is returned, request session is unchanged.
+
+	AuthEngine.signup(request, email, password, [connection, username,
+	user_metadata, given_name, family_name, name, nickname, picture, signin,
+	keep_signed_in])
+		Sign up a user using email, password, and other provided information.
+		picture is a URL representing the profile picture. If signin is set, a
+		session cookie is set in the request. keep_signed_in defines whether
+		or not to fetch a refresh token and is only used if signin is set.
+
+		If the user is successfully signed up, session is set in request and
+		return a User instance. Otherwise, an AuthEngineError instance with
+		error information is returned, request session is unchanged.
+
+		Example:
+		
+		```
+		created_user = AUTH0_ENGINE_INSTANCE.signup(
+			request,
+			email="user@company.com",
+			password="pas$w4rd",
+			connection=AUTH0_ENGINE_INSTANCE.USERNAME_PASSWORD_REALM,
+		)
+	
+		if created_user:
+			...
+		else:
+			...
+
+		```
+
+	AuthEngine.change_password(email, connection)
+		Sends a password change email to the email address if a user with that
+		email exists. An AuthEngineResponse instance is returned with an
+		appropriate message.
+
+	AuthEngine.refresh_access_token(refresh_token, scope)
+		Refreshes an access token using the refresh_token. Upon success, return
+		a User instance; an AuthEngineError instance with error information is
+		returned otherwise. It sets the token_refreshed flag in the response
+		which is used by other function to decide wheather or not to update
+		session.
+
+	AuthEngine.authenticate(request)
+		Authenticates a request using the id_token. The id_token is
+		acquire from the session cookie. Returns User on successful
+		authorization; AuthEngineError otherwise. If token is refreshed,
+		updates session cookie.
+
+	AuthEngine.authenticate_header(request)
+		Functions similarly to AuthEngine.authenticate, except that the
+		access_token is parsed from the request header instead of the session
+		cookie. Returns User on successful authorization; AuthEngineError
+		otherwise.
+
+	AuthEngine.get_user(access_token)
+		Exchanges the access_token for a User instance. Returns User if
+		successful; AuthEngineError otherwise.

@@ -1,0 +1,400 @@
+class OIDCClaimsStruct:
+	An object holding all the OIDC claims. Registered claims are taken from
+	https://datatracker.ietf.org/doc/html/rfc7519#section-4.1. Public claims
+	are taken from https://www.iana.org/assignments/jwt/jwt.xhtml#claims
+
+		Registered claims
+
+			OIDCClaimsStruct.iss
+				Issuer.
+
+			OIDCClaimsStruct.sub
+				Subject.
+
+			OIDCClaimsStruct.aud
+				Audience.
+
+			OIDCClaimsStruct.exp
+				Expiration Time.
+
+			OIDCClaimsStruct.nbf
+				Not Before.
+
+			OIDCClaimsStruct.iat
+				Issued At.
+
+			OIDCClaimsStruct.jti
+				JWT ID.
+
+
+		Public claims
+
+			OIDCClaimsStruct.name
+				Full name.
+
+			OIDCClaimsStruct.given_name
+				Given name(s) or first name(s).
+
+			OIDCClaimsStruct.family_name
+				Surname(s) or last name(s).
+
+			OIDCClaimsStruct.middle_name
+				Middle name(s).
+
+			OIDCClaimsStruct.nickname
+				Casual name.
+
+			OIDCClaimsStruct.preferred_username
+				Shorthand name by which the End-User wishes to be referred to.
+
+			OIDCClaimsStruct.profile
+				Profile page URL.
+
+			OIDCClaimsStruct.picture
+				Profile picture URL.
+
+			OIDCClaimsStruct.website
+				Web page or blog URL.
+
+			OIDCClaimsStruct.email
+				Preferred e-mail address.
+
+			OIDCClaimsStruct.email_verified
+				True if the e-mail address has been verified; otherwise false.
+
+			OIDCClaimsStruct.gender
+				Gender.
+
+			OIDCClaimsStruct.birthdate
+				Birthday.
+
+			OIDCClaimsStruct.zoneinfo
+				Time zone.
+
+			OIDCClaimsStruct.locale
+				Locale.
+
+			OIDCClaimsStruct.phone_number
+				Preferred telephone number.
+
+			OIDCClaimsStruct.phone_number_verified
+				True if the phone number has been verified; otherwise false.
+
+			OIDCClaimsStruct.address
+				Preferred postal address.
+
+			OIDCClaimsStruct.updated_at
+				Time the information was last updated.
+
+			OIDCClaimsStruct.azp
+				Authorized party - the party to which the ID Token was issued.
+
+			OIDCClaimsStruct.nonce
+				Value used to associate a Client session with an ID Token (MAY
+				also be used for nonce values in other applications of JWTs).
+
+			OIDCClaimsStruct.auth_time
+				Time when the authentication occurred.
+
+			OIDCClaimsStruct.at_hash
+				Access Token hash value.
+
+			OIDCClaimsStruct.c_hash
+				Code hash value.
+
+			OIDCClaimsStruct.acr
+				Authentication Context Class Reference.
+
+			OIDCClaimsStruct.amr
+				Authentication Methods References.
+
+			OIDCClaimsStruct.sub_jwk
+				Public key used to check the signature of an ID Token.
+
+			OIDCClaimsStruct.cnf
+				Confirmation.
+
+			OIDCClaimsStruct.sip_from_tag
+				SIP From tag header field parameter value.
+
+			OIDCClaimsStruct.sip_date
+				SIP Date header field value.
+
+			OIDCClaimsStruct.sip_callid
+				SIP Call-Id header field value.
+
+			OIDCClaimsStruct.sip_cseq_num
+				SIP CSeq numeric header field parameter value.
+
+			OIDCClaimsStruct.sip_via_branch
+				SIP Via branch header field parameter value.
+
+			OIDCClaimsStruct.orig
+				Originating Identity String.
+
+			OIDCClaimsStruct.dest
+				Destination Identity String.
+
+			OIDCClaimsStruct.mky
+				Media Key Fingerprint String.
+
+			OIDCClaimsStruct.events
+				Security Events.
+
+			OIDCClaimsStruct.toe
+				Time of Event.
+
+			OIDCClaimsStruct.txn
+				Transaction Identifier.
+
+			OIDCClaimsStruct.rph
+				Resource Priority Header Authorization.
+
+			OIDCClaimsStruct.sid
+				Session ID.
+
+			OIDCClaimsStruct.vot
+				Vector of Trust value.
+
+			OIDCClaimsStruct.vtm
+				Vector of Trust trustmark URL.
+
+			OIDCClaimsStruct.attest
+				Attestation level as defined in SHAKEN framework.
+
+			OIDCClaimsStruct.origid
+				Originating Identifier as defined in SHAKEN framework.
+
+			OIDCClaimsStruct.act
+				Actor
+
+			OIDCClaimsStruct.scope
+				Scope Values
+
+			OIDCClaimsStruct.client_id
+				Client Identifier
+
+			OIDCClaimsStruct.may_act
+				Authorized Actor - the party that is authorized to become the
+				actor.
+
+			OIDCClaimsStruct.jcard
+				jCard data.
+
+			OIDCClaimsStruct.at_use_nbr
+				Number of API requests for which the access token can be used.
+
+			OIDCClaimsStruct.div
+				Diverted Target of a Call.
+
+			OIDCClaimsStruct.opt
+				Original PASSporT (in Full Form).
+
+			OIDCClaimsStruct.vc
+				Verifiable Credential as specified in the W3C Recommendation.
+
+			OIDCClaimsStruct.vp
+				Verifiable Presentation as specified in the W3C Recommendation.
+
+			OIDCClaimsStruct.sph
+				SIP Priority header field.
+
+			OIDCClaimsStruct.ace_profile
+				The ACE profile a token is supposed to be used with.
+
+			OIDCClaimsStruct.cnonce
+				"client-nonce".  A nonce previously provided to the AS by the
+				RS via the client. Used to verify token freshness when the RS
+				cannot synchronize its clock with the AS.
+
+			OIDCClaimsStruct.exi
+				"Expires in".  Lifetime of the token in seconds from the time
+				the RS first sees it. Used to implement a weaker from of token
+				expiration for devices that cannot synchronize their internal
+				clocks.
+
+			OIDCClaimsStruct.roles
+				Roles.
+
+			OIDCClaimsStruct.groups
+				Groups.
+
+			OIDCClaimsStruct.entitlements
+				Entitlements.
+
+			OIDCClaimsStruct.token_introspection
+				Token introspection response.
+
+			OIDCClaimsStruct.ueid
+				The Universal Entity ID (TEMPORARY - registered 2022-03-23,
+				extension registered 2023-02-13, expires 2024-03-23).
+
+			OIDCClaimsStruct.sueids
+				Semi-permanent UEIDs (TEMPORARY - registered 2022-03-23,
+				extension registered 2023-02-13, expires 2024-03-23).
+
+			OIDCClaimsStruct.oemid
+				Hardware OEM ID (TEMPORARY - registered 2022-03-23, extension
+				registered 2023-02-13, expires 2024-03-23).
+
+			OIDCClaimsStruct.hwmodel
+				Model identifier for hardware (TEMPORARY - registered 2022-
+				03-23, extension registered 2023-02-13, expires 2024-03-23).
+
+			OIDCClaimsStruct.hwversion
+				Hardware Version Identifier (TEMPORARY - registered 2022-03-23,
+				extension registered 2023-02-13, expires 2024-03-23).
+
+			OIDCClaimsStruct.secboot
+				Indicate whether the boot was secure (TEMPORARY - registered
+				2022-03-23, extension registered 2023-02-13, expires 2024-03-23
+				).
+
+			OIDCClaimsStruct.dbgstat
+				Indicate status of debug facilities (TEMPORARY - registered
+				2022-03-23, extension registered 2023-02-13, expires 2024-03-23
+				).
+
+			OIDCClaimsStruct.location
+				The geographic location (TEMPORARY - registered 2022-03-23,
+				extension registered 2023-02-13, expires 2024-03-23).
+
+			OIDCClaimsStruct.eat_profile
+				Indicates the EAT profile followed (TEMPORARY - registered
+				2022-03-23, extension registered 2023-02-13, expires 2024-03-23
+				).
+
+			OIDCClaimsStruct.submods
+				The section containing submodules (TEMPORARY - registered
+				2022-03-23, extension registered 2023-02-13, expires 2024-03-23
+				).
+
+			OIDCClaimsStruct.cdniv
+				CDNI Claim Set Version.
+
+			OIDCClaimsStruct.cdnicrit
+				CDNI Critical Claims Set.
+
+			OIDCClaimsStruct.cdniip
+				CDNI IP Address.
+
+			OIDCClaimsStruct.cdniuc
+				CDNI URI Container.
+
+			OIDCClaimsStruct.cdniets
+				CDNI Expiration Time Setting for Signed Token Renewal.
+
+			OIDCClaimsStruct.cdnistt
+				CDNI Signed Token Transport Method for Signed Token Renewal.
+
+			OIDCClaimsStruct.cdnistd
+				CDNI Signed Token Depth.
+
+			OIDCClaimsStruct.sig_val_claims
+				Signature Validation Token.
+
+			OIDCClaimsStruct.authorization_details
+				The claim authorization_details contains a JSON array of JSON
+				objects representing the rights of the access token. Each JSON
+				object contains the data to specify the authorization
+				requirements for a certain type of resource.
+
+			OIDCClaimsStruct.verified_claims
+				This container Claim is composed of the verification evidence
+				related to a certain verification process and the corresponding
+				Claims about the End-User which were verified in this process.
+
+			OIDCClaimsStruct.place_of_birth
+				A structured Claim representing the End-User's place of birth.
+
+			OIDCClaimsStruct.nationalities
+				String array representing the End-User's nationalities.
+
+			OIDCClaimsStruct.birth_family_name
+				Family name(s) someone has when they were born, or at least
+				from the time they were a child. This term can be used by a
+				person who changes the family name(s) later in life for any
+				reason. Note that in some cultures, people can have multiple
+				family names or no family name; all can be present, with the
+				names being separated by space characters.
+
+			OIDCClaimsStruct.birth_given_name
+				Given name(s) someone has when they were born, or at least from
+				the time they were a child. This term can be used by a person
+				who changes the given name later in life for any reason. Note
+				that in some cultures, people can have multiple given names;
+				all can be present, with the names being separated by space
+				characters.
+
+			OIDCClaimsStruct.birth_middle_name
+				Middle name(s) someone has when they were born, or at least
+				from the time they were a child. This term can be used by a
+				person who changes the middle name later in life for any
+				reason. Note that in some cultures, people can have multiple
+				middle names; all can be present, with the names being
+				separated by space characters. Also note that in some cultures,
+				middle names are not used.
+
+			OIDCClaimsStruct.salutation
+				End-User's salutation, e.g., "Mr.".
+
+			OIDCClaimsStruct.title
+				End-User's title, e.g., "Dr.".
+
+			OIDCClaimsStruct.msisdn
+				End-User's mobile phone number formatted according to ITU-T
+				recommendation [E.164].
+
+			OIDCClaimsStruct.also_known_as
+				Stage name, religious name or any other type of alias/pseudonym
+				with which a person is known in a specific context besides its
+				legal name. This must be part of the applicable legislation and
+				thus the trust framework (e.g., be an attribute on the identity
+				card).
+
+			OIDCClaimsStruct.htm
+				The HTTP method of the request.
+
+			OIDCClaimsStruct.htu
+				The HTTP URI of the request (without query and fragment parts).
+
+			OIDCClaimsStruct.ath
+				The base64url-encoded SHA-256 hash of the ASCII encoding of the
+				associated access token's value.
+
+			OIDCClaimsStruct.atc
+				Authority Token Challenge.
+
+			OIDCClaimsStruct.sub_id
+				Subject Identifier.
+
+			OIDCClaimsStruct.rcd
+				Rich Call Data Information.
+
+			OIDCClaimsStruct.rcdi
+				Rich Call Data Integrity Information.
+
+			OIDCClaimsStruct.crn
+				Call Reason.
+
+			OIDCClaimsStruct.msgi
+				Message Integrity Information.
+
+			OIDCClaimsStruct._claim_names
+				JSON object whose member names are the Claim Names for the
+				Aggregated and Distributed Claims.
+
+			OIDCClaimsStruct._claim_sources
+				JSON object whose member names are referenced by the member
+				values of the _claim_names member.
+				
+	These are the methods available in a user object:
+
+	OIDCClaimsStruct.is_registered_claim(key)
+		Determines whether or not key is a registered claim.
+
+	OIDCClaimsStruct.is_public_claim(key)
+		Determines whether or not key is a public claim.
+
+	OIDCClaimsStruct.is_claim(key)
+		Determines whether or not key is a OIDC claim.
