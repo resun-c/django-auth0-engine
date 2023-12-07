@@ -8,7 +8,7 @@ class AuthEngineError(error, description, /, **kwarg)
 	authentication process. error is a string representing the name of the
 	error. description is short explanation of the error.
 
-	Each instance has five propery.
+	Each instance has five property.
 
 	AuthEngineError.error
 		This holds the error argument.
@@ -19,7 +19,7 @@ class AuthEngineError(error, description, /, **kwarg)
 	AuthEngineError.message
 		It looks up the kwargs and try to find a value with key "message". If
 		one such pair exists, it holds the value. In case of auth0_error, it
-		looks for propery named "message".
+		looks for property named "message".
 	
 	AuthEngineError.additional_error
 		Nested error information, stored if both error and an object with an
@@ -51,10 +51,12 @@ class AuthEngineError(error, description, /, **kwarg)
 	Example Usage:
 
 	```
+	from django_auth0_engine import AuthEngine
+
 	try:
-    	user = AuthEngine().signin(request, username="johndoe", password="secret")
+		user = AuthEngine().signin(request, username="johndoe", password="secret")
 	except AuthEngineError as e:
-    	print(f"Error: {e.error}")
-    	print(f"Description: {e.description}")
-    	print(f"Message: {e.message}")
+		print(f"Error: {e.error}")
+		print(f"Description: {e.description}")
+		print(f"Message: {e.message}")
 	```

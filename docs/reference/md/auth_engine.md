@@ -61,7 +61,7 @@ Determines if the instance is usable based on the availability of required infor
 ### AuthEngine.__parse_response__(response: str)AuthEngine.__parse_response__(response: dict[str, Any])
 Parse response received from different auth0 endpoints and return different types of AuthEngineResponse instances including User and AuthEngineError. It also parse auth data stored in request's session cookies.
 		
-If an id_token is present in response, it validates that using AuthVerifierEngine.verify. If the token is valid, an User instance is constructed from the informations of the id_token and returned. If thetoken is expired and a refresh_token exists in response, it refreshes the token by calling AuthEngine.refresh_token and return the response received from it. In case, the token is invalid and AuthEngineError is returned.
+If an id_token is present in response, it validates that using AuthVerifierEngine.verify. If the token is valid, an User instance is constructed from the information of the id_token and returned. If the token is expired and a refresh_token exists in response, it refreshes the token by calling AuthEngine.refresh_token and return the response received from it. In case, the token is invalid and AuthEngineError is returned.
 
 ### AuthEngine.__to_session__(response)
 Converts a parsed response to a dictionary containing information including access_token, refresh_token, id_token, token_type, and expires_in for session storage.
@@ -81,18 +81,20 @@ Upon authentication, it sets session in the request object and return a User ins
 Example:
 
 ```
-user = AUTH0_ENGINE_INSTANCE.signin(
+from django_auth0_engine import AuthEngine
+
+user = AuthEngine().signin(
 	request,
 	username="user@company.com",
 	password="pas$w4rd",
-	realm=AUTH0_ENGINE_INSTANCEUSERNAME_PASSWORD_EALM,
+	realm=AuthEngine.USERNAME_PASSWORD_EALM,
 	keep_signed_in=True,
 )
 
 if user:
-    ...
+	...
 else:
-    ...
+	...
 
 ```
 
@@ -109,11 +111,13 @@ If the user is successfully signed up, session is set in request and return a Us
 Example:
 		
 ```
-created_user = AUTH0_ENGINE_INSTANCE.signup(
+from django_auth0_engine import AuthEngine
+
+created_user = AuthEngine().signup(
 	request,
 	email="user@company.com",
 	password="pas$w4rd",
-	connection=AUTH0_ENGINE_INSTANCE.USERNAME_PASSWORD_REALM,
+	connection=AuthEngine.USERNAME_PASSWORD_REALM,
 )
 
 if created_user:
@@ -127,10 +131,10 @@ else:
 Sends a password change email to the email address if a user with that email exists. An AuthEngineResponse instance is returned with an appropriate message.
 
 ### AuthEngine.__refresh_access_token__(refresh_token, scope)
-Refreshes an access token using the refresh_token. Upon success, return a User instance; an AuthEngineError instance with error information is returned otherwise. It sets the token_refreshed flag in the response which is used by other function to decide wheather or not to update session.
+Refreshes an access token using the refresh_token. Upon success, return a User instance; an AuthEngineError instance with error information is returned otherwise. It sets the token_refreshed flag in the response which is used by other function to decide whether or not to update session.
 
 ### AuthEngine.__authenticate__(request)
-Authenticates a request using the id_token. The id_token is acquire from the session cookie. Returns User on successful authorization; AuthEngineError otherwise. If token is refreshed, updates session cookie.
+Authenticates a request using the id_token. The id_token is retrieved from the session cookie. Upon successful authentication, it returns a User object representing the authenticated user; AuthEngineError otherwise. If token is expired and a refresh token exists in session cookie, if fetch new id token and access token and updates session cookie automatically.
 
 ### AuthEngine.__authenticate_header__(request)
 Functions similarly to AuthEngine.authenticate, except that the access_token is parsed from the request header instead of the session cookie. Returns User on successful authorization; AuthEngineError otherwise.

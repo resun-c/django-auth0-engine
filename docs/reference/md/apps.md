@@ -1,4 +1,4 @@
-# _class_ DjangoAuth0Engine
+# _class_ DjangoAuth0EngineConfig
 
 Configuration for Django app.
 
@@ -22,7 +22,7 @@ API audience
 String containing scopes that are used when requesting for access_token.
 
 ### USER_DB_BACKEND (optional)
-Databse backend class used by User class.
+Database backend class used by User class.
 
 
 If any of the above information is missing, an AuthEngineError is raised.

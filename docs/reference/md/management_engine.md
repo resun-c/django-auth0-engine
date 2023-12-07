@@ -12,7 +12,7 @@ An instance of the Auth0 class from the Auth0 SDK.
 Returns an instance of auth0.authentication.GetToken.
 
 ### _property_ ManagementEngine.__access_token__
-Return a access toeken for the Management API. It automatically refreshes the token if expired and raises an AuthEngineError if the refresh fails.
+Return a access token for the Management API. It automatically refreshes the token if expired and raises an AuthEngineError if the refresh fails.
 
 These are the methods available in a user object:
 

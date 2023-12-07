@@ -5,7 +5,7 @@
 # _class_ AuthEngineError(error, description, /, **kwarg)
 Custom exception class raised by different methods of the AuthEngine class. It encapsulates information about the error encountered during the authentication process. error is a string representing the name of the error. description is short explanation of the error.
 
-Each instance has five propery.
+Each instance has five property.
 
 ### AuthEngineError.__error__
 This holds the error argument.
@@ -14,7 +14,7 @@ This holds the error argument.
 This holds the description argument.
 
 ### AuthEngineError.__message__
-It looks up the kwargs and try to find a value with key "message". If one such pair exists, it holds the value. In case of auth0_error, it looks for propery named "message".
+It looks up the kwargs and try to find a value with key "message". If one such pair exists, it holds the value. In case of auth0_error, it looks for property named "message".
 	
 ### AuthEngineError.__additional_error__
 Nested error information, stored if both error and an object with an error key are provided. Sometimes both the error and some other object with a key "error" can be passed as argument. In those cases, AuthEngineError.error holds the value of error and additional_error holds the value of the error key in that object.
@@ -39,6 +39,8 @@ Always returns False.
 Example Usage:
 
 ```
+from django_auth0_engine import AuthEngine
+
 try:
 	user = AuthEngine().signin(
 		request,

@@ -15,7 +15,7 @@ class ManagementEngine(domain, auth_engine)
 		Returns an instance of auth0.authentication.GetToken.
 
 	property ManagementEngine.access_token
-		Return a access toeken for the Management API. It automatically
+		Return a access token for the Management API. It automatically
 		refreshes the token if expired and raises an AuthEngineError if the
 		refresh fails.
 

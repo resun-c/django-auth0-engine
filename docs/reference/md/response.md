@@ -37,7 +37,7 @@ Allows iterating over publicly accessible variables of the response object. (Pub
 
 Inheritance:
 
-User: Represents a successful authentication and provides user nformation.
+User: Represents a successful authentication and provides user information.
 
 AuthEngineError: Represents an error encountered during an operation and contains detailed error information.
 	
@@ -47,16 +47,16 @@ Example Usage:
 # Successful authentication
 response = auth_engine.signin(request,username="johndoe", password="secret")
 if response:
-    user = response
-    print(f"User ID: {user.id}")
+	user = response
+	print(f"User ID: {user.id}")
 else:
-    print(f"Error: {response.error}")
+	print(f"Error: {response.error}")
 
 # Refreshing access token
 response = auth_engine.refresh_access_toke(refresh_token="refresh_token")
 if response:
-    print(f"Access token refreshed: {response.access_token}")
+	print(f"Access token refreshed: {response.access_token}")
 else:
-    print(f"Error: {response.error}")
+	print(f"Error: {response.error}")
 
 ```
