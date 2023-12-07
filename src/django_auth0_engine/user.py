@@ -103,19 +103,19 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 		database backend.
 		"""
 		if not self._db and self._db_backend:
-			return self._db_backend(**(self.__dict__))
+			self._db = self._db_backend(**(self.to_dict()))
 		return self._db
 	
-	def set_db_backend(self, _db_backend_class:Any):
+	def set_db_backend(self, _db_backend:Any):
 		"""This method sets a specific database backend for the user instance.
 		This is primarily useful for scenarios involving multiple database
 		backends.
 
 		Args:
-			_db_backend_class: A class that is initialized using user's sub
+			_db_backend: A class that is initialized using user's sub
 			(id) given through keyword arguments.
 		"""
-		self._db_backend = _db_backend_class
+		self._db_backend = _db_backend
 	
 	def valid_user_key(self, key: str):
 		"""This method checks whether a provided key is a valid user attribute key
