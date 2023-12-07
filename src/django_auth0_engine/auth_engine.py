@@ -408,6 +408,7 @@ class AuthEngine:
 			password (str): The user's desired password.
 
 			connection (str): The name of the database connection where this user should be created.
+				By default it uses the "Username-Password-Authentication" connection.
 
 			username (str, optional): The user's username, if required by the database connection.
 
