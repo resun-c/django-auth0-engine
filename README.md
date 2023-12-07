@@ -26,7 +26,7 @@ AUTH0_CLIENT_SECRET	=	"client_secret"
 
 AUTH0_DOMAIN		=	"tenant domain"
 
-AUTH0_AUDIENCE		= "API audience"
+AUTH0_AUDIENCE		=	"API audience"
 ```
 
 You can set the `AUTH0_AUDIENCE` to `AUTH0_CLIENT_ID` or ignore it if you are not intending to use anything other than authentication.
