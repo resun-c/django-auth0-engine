@@ -3,7 +3,7 @@ from .exceptions import AuthEngineError
 from django.apps import AppConfig
 from django.conf import settings
 
-class DjangoAuth0Engine(AppConfig):
+class DjangoAuth0EngineConfig(AppConfig):
 	"""Configuration for Django app.
 	"""
 	name = "django_auth0_engine"
