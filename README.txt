@@ -3,6 +3,12 @@ OAuth, OIDC, and Auth0 technology to perform authentication and authorization
 securely. It focuses on empowering developers to build secure and user-friendly
 applications with simplified authentication and resource management.
 
+# Install
+
+```
+py -m pip install --index-url https://test.pypi.org/simple/ --no-deps django-auth0-engine
+
+```
 Setup:
 
 Configuration
