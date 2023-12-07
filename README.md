@@ -20,13 +20,13 @@ py -m pip install --index-url https://test.pypi.org/simple/ --no-deps django-aut
 4. In setting define these attributes with `client_id`, `client_secret`, tenant `domain` and API `audience`:
 
 ```
-AUTH0_CLIENT_ID	=	"client_id"
+AUTH0_CLIENT_ID		=	"client_id"
 
 AUTH0_CLIENT_SECRET	=	"client_secret"
 
-AUTH0_DOMAIN	=	"tenant domain"
+AUTH0_DOMAIN		=	"tenant domain"
 
-AUTH0_AUDIENCE	= "API audience"
+AUTH0_AUDIENCE		= "API audience"
 ```
 
 You can set the `AUTH0_AUDIENCE` to `AUTH0_CLIENT_ID` or ignore it if you are not intending to use anything other than authentication.
