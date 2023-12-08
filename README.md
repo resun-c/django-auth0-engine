@@ -15,9 +15,9 @@ py -m pip install --index-url https://test.pypi.org/simple/ --no-deps django-aut
 
 2. Collect the `client_id` and `client_secret` of the application, tenant `domain` name and API `audience` (for only authentication purposes it is the client_id)
 
-3. Add the "django_auth0_engine.apps.DjangoAuth0EngineConfig" app to the `INSTALLED_APPS` list in settings.
+3. Add the `"django_auth0_engine"` app to the `INSTALLED_APPS` list in settings.
 
-4. In setting define these attributes with `client_id`, `client_secret`, tenant `domain` and API `audience`:
+4. In settings define these attributes with `client_id`, `client_secret`, tenant `domain` and API `audience`:
 
 ```
 AUTH0_CLIENT_ID		=	"client_id"
