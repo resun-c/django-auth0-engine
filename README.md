@@ -84,9 +84,7 @@ This middleware will perform authentication using the `AuthEngine.authenticate_h
 Both of these middleware can co-exist in a project. Further, they both can be used along with Django's existing authentication system.
 
 ## Setting User Database Backend
-This module provides a flexible way to integrate your chosen database with user management through the `User.db` property. By defining a dedicated database backend class, you can access the user's associated database entry directly from your code.
-
-In your settings, assign the `USER_DB_BACKEND` attribute the name of your database backend class. This informs the `User` object which class to use for database interaction.
+To integrate a database for users, assign a custom database backend class to the  `USER_DB_BACKEND` attribute in settings. Then you can access the user's database record through the `User.db` property directly from your code.
 
 ```
 USER_DB_BACKEND = UserDB			# UserDB is a class with database control
