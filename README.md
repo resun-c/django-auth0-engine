@@ -45,20 +45,7 @@ To use this middleware, add this string to the `MIDDLEWARE` list:
 'django_auth0_engine.middleware.SessionAuthMiddleware'
 ```
 
-#### Example:
-
-Here's an example of authenticating a request using this middleware after an user has been successfully signed in using the `AuthEngine.signin()` method:
-
-```
-def home(request: HttpRequest):
-	user = request.user
-	if user:
-		# successful authentication
-		...
-	else:
-		# unsuccessful authentication
-		...
-```
+See the [SessionAuthMiddleware](docs/reference/md/middleware.md#class-sessionauthmiddleware) documentation for details.
 
 ### HeaderAuthMiddleware
 
@@ -69,19 +56,9 @@ To use it add this to your `MIDDLEWARE` list:
 'django_auth0_engine.middleware.HeaderAuthMiddleware'
 ```
 
-Example:
+See the [SessionAuthMiddleware](docs/reference/md/middleware.md#class-headerauthmiddleware) documentation for details.
 
-If a request is made to your API by setting the `Authorization` header with `Bearer` token like this:
-
-```
-curl --request GET \
-	--url http://your-domain.com/api_path \
-	--header 'authorization: Bearer ACCESS_TOKEN'
-```
-
-This middleware will perform authentication using the `AuthEngine.authenticate_header()` method which verifies the `ACCESS_TOKEN` and set the `request.user` with a `User` object with OIDC information of the authenticated user.
-
-Both of these middleware can co-exist in a project. Further, they both can be used along with Django's existing authentication system.
+Both of these middleware can co-exist in a project. Further, they both can be used along with the existing middleware of the Django authentication backend.
 
 ## Setting User Database Backend
 To integrate a database for users, assign a custom database backend class to the  `USER_DB_BACKEND` attribute in settings. Then you can access the user's database record through the `User.db` property directly from your code.
