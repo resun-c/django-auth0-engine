@@ -7,16 +7,12 @@ from auth0.management import Auth0, Users
 from auth0 import authentication
 
 class ManagementEngine:
-	"""ManagementEngine facilitates administrative tasks on the Auth0 platform,
+	"""This class facilitates administrative tasks on the Auth0 platform,
 	specifically focusing on updating user information.
 
 	ManagementEngine relies on the same pieces of information that AuthEngine
-	relies on to. If any of these required pieces of information are missing,
-	an error will be raised.
-
-	The ManagementEngine class only serves one purpose: updating user
-	information. The update_user method is typically called by the User class
-	after changing a user's attributes.
+	relies on. If any of these required pieces of information is missing, an
+	AuthEngineError is raised.
 	"""
 	def __init__(self) -> None:
 		self.audience				:str			= "https://{}/api/v2/".format(cfg._AUTH0_DOMAIN)
@@ -27,6 +23,9 @@ class ManagementEngine:
 		self._auth0_object_user		:Users | None	= None
 
 	def __bool__(self):
+		"""Determines if the instance is usable based on the availability of
+		required information.
+		"""
 		if cfg._AUTH0_CLIENT_SECRET and cfg._AUTH0_CLIENT_SECRET and cfg._AUTH0_DOMAIN:
 			return True
 		
@@ -43,7 +42,7 @@ class ManagementEngine:
 
 	@cached_property
 	def token_endpoint(self) -> authentication.GetToken:
-		"""Returns an instance of auth0.authentication.GetToken.
+		"""An instance of auth0.authentication.GetToken.
 		"""
 		return authentication.GetToken(
 			domain			=	cfg._AUTH0_DOMAIN,
@@ -53,9 +52,9 @@ class ManagementEngine:
 	
 	@property
 	def access_token(self) -> str | None:
-		"""Return a access toeken for the Management API. It automatically
-		refreshes the token if expired and raises an AuthEngineError if the
-		refresh fails.
+		"""Return an access token for the Management API. It automatically
+		refreshes the token if it's expired and raises an AuthEngineError if
+		it's unable to do so.
 		"""
 		if not self:
 			return None
@@ -72,7 +71,7 @@ class ManagementEngine:
 			raise AuthEngineError(error="Can't fetch Access Token for ManagementEngine!")
 
 	def fetch_management_token(self) -> bool:
-		"""Retrieves a Management API token using the token endpoint. Returns True
+		"""Fetch a Management API token using the token endpoint. Returns True
 		upon success; False otherwise.
 		"""
 		if not self:
@@ -96,9 +95,16 @@ class ManagementEngine:
 		return False
 
 	def update_user(self, id, body) -> AuthEngineResponse:
-		"""Updates a user's information based on the provided id and body data. On
-		successful update, returns an AuthEngineResponse object containing the
-		updated information.
+		"""This method updates the attributes of the user.
+
+		Args:
+			id (str): sub (a.k.a id) of the user whose attributes to update.
+
+			body (dict): a dict containing the attributes to update.
+
+		Upon successful update, it returns an AuthEngineResponse object
+		containing the updated attributes. Otherwise, an AuthEngineError object
+		is returned.
 		"""
 		return_response:AuthEngineResponse = AuthEngineError()
 		try:
