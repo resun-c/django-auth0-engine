@@ -49,7 +49,7 @@ See the [SessionAuthMiddleware](docs/reference/md/middleware.md#class-sessionaut
 
 ### HeaderAuthMiddleware
 
-This middleware is like `SessionAuthMiddleware`, but instead of using sessions, it authenticates users based on the Authorization header, making it suitable for API applications.
+To authenticate requests of your API, employ this middleware. It is like `SessionAuthMiddleware`, but instead of using sessions, it uses the Bearer token from the Authorization header for authentication.
 
 To use it, add this to your `MIDDLEWARE` list:
 
@@ -59,7 +59,7 @@ To use it, add this to your `MIDDLEWARE` list:
 
 See the [SessionAuthMiddleware](docs/reference/md/middleware.md#class-headerauthmiddleware) documentation for details.
 
-Both of these middleware can co-exist in a project. Further, they both can be used along with the existing middleware of the Django authentication backend.
+You can use both of these middleware in the same project, and they're compatible with Django's built-in authentication middleware.
 
 ## Setting User Database Backend
 To integrate a database for users, assign a custom database backend class to the  `USER_DB_BACKEND` attribute in settings. Then you can access the user's database record through the `User.db` property directly from your code.
