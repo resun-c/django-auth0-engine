@@ -224,7 +224,7 @@ def aview(request):
 
 ## User object
 
-The User object is a fundamental element of the Django Auth0 Engine and plays a critical role in user management within your application. It resembles the standard Django User object but extends its capabilities by specifically leveraging OIDC and Auth0 technologies.
+The User object is a fundamental element of the Django Auth0 Engine and plays a critical role in user management within your application. It resembles the standard Django User object but extends its capabilities specifically by leveraging OIDC and Auth0 technologies.
 
 ### User Database
 The `User` object in Django Auth0 Engine is built using OpenID Connect (OIDC) information obtained from Auth0 ID tokens. This allows for a lightweight representation of the user without requiring database interaction by default. However, the `User` object provides functionalities for seamlessly integrating with your chosen database backend.
@@ -250,6 +250,6 @@ def home(request):
 		...
 ```
 
-See the [examples / user_db_backends.md](docs/examples/user_db_backends.md) documentation for details.
+See the [examples / user_db_backends.md](docs/examples/user_db_backends.md) documentation for details on making a database backend.
 
 User object has other functionality including multiple database backends. See the [User](docs/reference/md/user.md#class-userkwarg) documentation for details.
