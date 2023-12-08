@@ -13,6 +13,10 @@ from auth0.authentication.token_verifier import TokenVerifier
 from auth0.authentication.token_verifier import TokenValidationError
 
 class AuthVerifierEngine(TokenVerifier):
+	"""A wrapper of auth0.authentication.token_verifier.TokenVerifier. The
+	auth0.authentication.token_verifier.TokenVerifier.verify function is used
+	to validate id tokens.
+	"""
 	def __init__(self, issuer, jwks_url, audience, algorithms:list = ["RS256"]):
 		if "RS256" in algorithms:
 			signature_verifier = AsymmetricSignatureVerifier(jwks_url=jwks_url, algorithm="RS256")
@@ -160,26 +164,29 @@ class AuthEngine:
 			return AuthEngineError(**response)
 
 	def parse_response(self, response = None) -> AuthEngineResponse:
-		"""
-		Parse response received from different auth0 endpoints and return
-		different types of AuthEngineResponse instances including User and
-		AuthEngineError. It also parse auth data stored in request's session
-		cookies.
+		"""This method parses response data received from various Auth0 endpoints
+		and returns different types of AuthEngineResponse objects, including
+		User and AuthEngineError. It also parses auth session data from the
+		request object.
+
+		If the response includes an id_token, the function validates it using
+		AuthVerifierEngine.verify(). If valid, a User object is constructed
+		from the token's information and returned. If the token is expired and
+		a refresh_token exists, the function refreshes it using
+		AuthEngine.refresh_token() and returns the received response. In case
+		of an invalid token, an AuthEngineError object is returned. If the
+		response contains an _id key (indicating sign up), a corresponding
+		AuthEngineResponse object is constructed and returned. If the response
+		has an error key, a corresponding AuthEngineError object is constructed
+		and returned.
 
 		Args:
-			response (dict): response received from different auth0 endpoints
+			response (str | dict): typically response from Auth0 endpoints or
+				auth session data from request. If string is passed, it is
+				first parsed as json.
 
-		Return:
-			Instance of any Subclasses of AuthEngineResponse or instance of
-			AuthEngineResponse itself.
-
-		If an id_token is present in response, it validates that using
-		AuthVerifierEngine.verify. If the token is valid, an User instance is
-		constructed from the informations of the id_token and returned. If the
-		token is expired and a refresh_token exists in response, it refreshes
-		the token by calling AuthEngine.refresh_token and return the response
-		received from it. In case, the token is invalid and AuthEngineError is
-		returned.
+		Returns:
+			AuthEngineResponse or User or AuthEngineError
 		"""
 		return_response:AuthEngineResponse = AuthEngineError(error="Unknown error at AuthEngine.parse_response")
 		if self and response:
@@ -212,18 +219,17 @@ class AuthEngine:
 		return return_response
 
 	def to_session(self, response: AuthEngineResponse) -> dict[str, Any]:
-		"""Converts a parsed response to a dictionary containing information
-		including access_token, refresh_token, id_token, token_type, and
-		expires_in for session storage.
-
-		The dict is stored in auth session, which is parsed by
-		AuthEngine.parse_response for authenticating subsequent requests.
+		"""This method constructs a dictionary containing essential authentication
+		information (access_token, refresh_token, id_token, token_type, and
+		expires_in) from a User object. This dictionary is stored in the
+		request session cookie, which is later used by
+		AuthEngine.parse_response() to facilitate authentication for subsequent
+		requests.
 
 		Args:
-			response (AuthEngineResponse): response received from
-			AuthEngine.parse_response or session cookie
+			response (User): User object to acquire data from.
 
-		Return:
+		Returns:
 			dict
 		"""
 		
@@ -239,12 +245,16 @@ class AuthEngine:
 		return {}
 	
 	def set_session(self, request: HttpRequest, response: AuthEngineResponse) -> None:
-		"""Sets the authorization session in the HttpRequest object from dict
-		returned by AuthEngine.to_session. The session is modified only if
-		it's not the same as the existing session in the request.
+		"""This method sets/updates the authentication session data stored in the
+		HttpRequest object with the dict returned by AuthEngine.to_session().
+		This modification only applies if the provided dictionary differs from
+		the current session data associated with the request.
 
 		Args:
-			request (HttpRequest): Django HttpRequest
+			request (HttpRequest): The HttpRequest whose session cookie is
+				set/updated.
+
+			response (User): User object to acquire data from.
 		"""
 		if response:
 			existing_auth = request.session.get(cfg._SESSION_KEY)
@@ -266,16 +276,11 @@ class AuthEngine:
 		forwarded_for: str | None = None,
 		keep_signed_in: bool = False
 	) -> AuthEngineResponse | User | None:
-		"""Signs in a user with username, password, belonging to realm. grant_type
-		denotes the flow being used. Default is
-		http://auth0.com/oauth/grant-type/password-realm (from auth0 sdk).
-		forwarded_for is the End-user IP as a string value. It is used for
-		brute-force protection to work in server-side scenarios. keep_signed_in
-		defines whether or not to fetch a refresh token.
+		"""Signs in a user with username, password.
 
-		Upon authentication, it sets session in the request object and return a
-		User instance. Otherwise, an AuthEngineError instance with error
-		information is returned, request session is unchanged.
+		Upon authentication, it sets the auth session in the request and
+		returns a User object. Otherwise, an AuthEngineError object with
+		error information is returned; the request session is unchanged.
 
 		Args:
 			request (HttpRequest): Django HttpRequest
@@ -284,23 +289,28 @@ class AuthEngine:
 
 			password (str): resource owner's Secret
 
-			scope(str, optional): String value of the different scopes the client is asking for.
-				Multiple scopes are separated with whitespace.
+			scope(str, optional): String value of the different scopes the
+				client is asking for. Multiple scopes are separated with
+				whitespace.
 
 			realm (str, optional): String value of the realm the user belongs.
 				Set this if you want to add realm support at this grant.
 
-			audience (str, optional): The unique identifier of the target API you want to access.
+			audience (str, optional): The unique identifier of the target API
+				you want to access.
 
-			grant_type (str, optional): Denotes the flow you're using. For password realm
-				use http://auth0.com/oauth/grant-type/password-realm
+			grant_type (str, optional): Denotes the flow you're using. For
+				password realm use
+				http://auth0.com/oauth/grant-type/password-realm
 
-			forwarded_for (str, optional): End-user IP as a string value. Set this if you want
-				brute-force protection to work in server-side scenarios.
-				See https://auth0.com/docs/get-started/authentication-and-authorization-flow/avoid-common-issues-with-resource-owner-password-flow-and-attack-protection
+			forwarded_for (str, optional): End-user IP as a string value. Set
+				this if you want brute-force protection to work in server-side
+				scenarios. See
+				https://auth0.com/docs/get-started/authentication-and-authorization-flow/avoid-common-issues-with-resource-owner-password-flow-and-attack-protection
 
-			keep_signed_in (bool): Wheather or not to fetch refresh token for refereshing access token next time.
-
+			keep_signed_in (bool): Whether or not to fetch refresh token for
+				refreshing access token next time.
+		
 		Returns:
 			User or AuthEngineError
 		"""
@@ -340,24 +350,22 @@ class AuthEngine:
 			code: str,
 			redirect_uri: str
 	) -> AuthEngineResponse | User | None:
-		"""Signs in a user using the authorization code grant received from the
-		identity providers such as Google, Facebook, X, and Microsoft.
+		"""This method signs in a user using the authorization code grant received
+		from various identity providers (IdPs), including social networks
+		(Google, Facebook, Twitter, LinkedIn), enterprise systems (Microsoft
+		Active Directory), and others.
 
-		Upon parsing the response, it sets session in request and return a User
-		instance. Otherwise, an AuthEngineError instance with error
-		information is returned, request session is unchanged.
+		Upon parsing the response, it sets the auth session in the request and
+		returns a User object. Otherwise, an AuthEngineError object with error
+		information is returned; the request session is unchanged.
 
 		Args:
 			request (HttpRequest): Django HttpRequest
 
-			refresh_token (str): The refresh token returned from the initial token request.
+			code (str): authorization code grant provided by IdP
 
-			scope (str): Use this to limit the scopes of the new access token.
-			Multiple scopes are separated with whitespace.
-
-			grant_type (str): Denotes the flow you're using. For refresh token
-				use refresh_token
-
+			redirect_uri (str): the url for which the code was intended for.
+		
 		Returns:
 			User or AuthEngineError
 		"""
@@ -390,13 +398,13 @@ class AuthEngine:
 		picture: str | None = None,
 		keep_signed_in: bool = False
 	) -> AuthEngineResponse | User | None:
-		"""Sign up a user using email, password, and other provided information.
-		picture is a URL representing the profile picture. keep_signed_in
-		defines whether or not to fetch a refresh token.
-
-		If the user is successfully signed up, session is set in request and
-		return a User instance. Otherwise, an AuthEngineError instance with
-		error information is returned, request session is unchanged.
+		"""This method allows to register a user with Auth0 application using
+		email address, password, and any additional information.
+		
+		Upon successful sign up, it sets the auth session in the request and
+		returns a User object. Otherwise, an AuthEngineError object with error
+		information is returned; the request session is unchanged. A
+		verification mail is also sent to the email address.
 
 		Args:
 			request (HttpRequest): Django HttpRequest
@@ -405,13 +413,16 @@ class AuthEngine:
 
 			password (str): The user's desired password.
 
-			connection (str): The name of the database connection where this user should be created.
-				By default it uses the "Username-Password-Authentication" connection.
+			connection (str): The name of the database connection where
+				this user should be created. By default it uses the
+				"Username-Password-Authentication" connection.
 
-			username (str, optional): The user's username, if required by the database connection.
+			username (str, optional): The user's username, if required by the
+				database connection.
 
-			user_metadata (dict, optional): Additional key-value information to store for the user.
-				Some limitations apply, see: https://auth0.com/docs/metadata#metadata-restrictions
+			user_metadata (dict, optional): Additional key-value information to
+			store for the user. Some limitations apply, see:
+			https://auth0.com/docs/metadata#metadata-restrictions
 
 			given_name (str, optional): The user's given name(s).
 
@@ -423,7 +434,8 @@ class AuthEngine:
 
 			picture (str, optional): A URI pointing to the user's picture.
 
-			keep_signed_in (bool): Whether or not to fetch refresh token for refreshing access token next time.
+			keep_signed_in (bool): Whether or not to fetch refresh token for
+				refreshing access token next time.
 
 		Returns:
 			User or AuthEngineError
@@ -465,17 +477,18 @@ class AuthEngine:
 		return response
 
 	def change_password(self, email: str, connection: str) -> AuthEngineResponse | None:
-		"""Sends a password change email to the email address if a user with that
-		email exists. An AuthEngineResponse instance is returned with an
-		appropriate message.
+		"""This method sends a password change email to the email address if a
+		user with that email exists. 
 
 		Args:
-			email (str): The user's email address.
+			email (str): email address of the user.
 
-			connection (str): The name of the database connection where this user should be created.
+			connection (str): The name of the database connection where the
+				user was created. By default it uses the
+				"Username-Password-Authentication" connection.
 
 		Returns:
-			AuthEngineResponse
+			AuthEngineResponse object with an appropriate message.
 		"""
 		if not self:
 			return
@@ -495,19 +508,17 @@ class AuthEngine:
 		return response
 
 	def refresh_access_token(self, refresh_token:str, scope: str | None = None) -> AuthEngineResponse:
-		"""Refreshes an access token using the refresh_token. Upon success, return
-		a User instance; an AuthEngineError instance with error information is
-		returned otherwise. It sets the token_refreshed flag in the response
-		which is used by other function to decide wheather or not to update
-		session.
+		"""This method refreshes an access token using the refresh_token. Upon
+		success, return a User object; an AuthEngineError object with error
+		information is returned otherwise. It sets the token_refreshed flag in
+		the response which is used by other functions to decide whether or not
+		to update the request session.
 
 		Args:
-			request (HttpRequest): Django HttpRequest
+			refresh_token (str): the refresh token.
 
-			refresh_token (str): The refresh token returned from the initial token request.
-
-			scope (str): Use this to limit the scopes of the new access token.
-			Multiple scopes are separated with whitespace.
+			scope (str): Used to limit the scopes of the new access token.
+				Multiple scopes are separated with whitespace.
 
 		Returns:
 			User or AuthEngineError
@@ -531,14 +542,16 @@ class AuthEngine:
 		return response
 
 	def authenticate(self, request: HttpRequest) -> AuthEngineResponse | None:
-		"""Authenticates a request using the id_token. The id_token is
-		acquire from the session cookie. Returns User on successful
-		authorization; AuthEngineError otherwise. If token is refreshed,
-		updates session cookie.
+		"""This method authenticates a request using the id_token. The id_token is
+		retrieved from the request session. Upon successful authentication, it
+		returns a User object; AuthEngineError otherwise. If the token is
+		expired and a refresh token exists in the request session, this method
+		fetches a new ID token and access token and updates the session cookie
+		automatically.
 
 		Args:
 			request (HttpRequest): Django HttpRequest
-
+		
 		Returns:
 			User or AuthEngineError
 		"""
@@ -554,14 +567,14 @@ class AuthEngine:
 		return response
 
 	def authenticate_header(self, request: HttpRequest) -> AuthEngineResponse | None:
-		"""Functions similarly to AuthEngine.authenticate, except that the
-		access_token is parsed from the request header instead of the session
-		cookie. Returns User on successful authorization; AuthEngineError
-		otherwise.
+		"""This method functions similarly to the AuthEngine.authenticate()
+		method, except that the access_token is parsed from the request header
+		instead of the request session. Returns User object upon successful
+		authentication; AuthEngineError otherwise.
 
 		Args:
 			request (HttpRequest): Django HttpRequest
-
+		
 		Returns:
 			User or AuthEngineError
 		"""
@@ -580,14 +593,14 @@ class AuthEngine:
 		return response
 
 	def get_user(self, access_token: str | None) -> AuthEngineResponse | User | None:
-		"""Exchanges the access_token for a User instance. Returns User if
-		successful; AuthEngineError otherwise.
+		"""This method exchanges an access_token for a User object. Returns User
+		if successful; AuthEngineError otherwise.
 
 		Args:
-			access_token (str, None): access_token received during authorization
+			access_token (str): access_token
 
 		Returns:
-			User instance
+			User or AuthEngineError
 		"""
 		if not self:
 			return
