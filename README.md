@@ -37,9 +37,9 @@ Django Auth0 Engine comes with two middleware to make the authentication process
 
 ### SessionAuthMiddleware
 
-This middleware authenticates each request using the `AuthEngine.authenticate()` method which in turn sets the `request.user` with a `User` object with OIDC information of the authenticated user.
+This middleware authenticates the requests made from the browser using the ID tokens from the session.
 
-To use this middleware, add this string to the `MIDDLEWARE` list:
+To use add this to your `MIDDLEWARE` list:
 
 ```
 'django_auth0_engine.middleware.SessionAuthMiddleware'
@@ -49,9 +49,10 @@ See the [SessionAuthMiddleware](docs/reference/md/middleware.md#class-sessionaut
 
 ### HeaderAuthMiddleware
 
-The `HeaderAuthMiddleware` is similar to the `SessionAuthMiddleware` except that it authenticates the header and is used for APIs.
+This middleware is similar to the `SessionAuthMiddleware` except that it authenticates the header and is used for APIs.
 
-To use it add this to your `MIDDLEWARE` list:
+To use add this to your `MIDDLEWARE` list:
+
 ```
 'django_auth0_engine.middleware.HeaderAuthMiddleware'
 ```
