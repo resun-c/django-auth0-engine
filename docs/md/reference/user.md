@@ -1,0 +1,119 @@
+# __dict_diff__(new, old)
+This function returns a dictionary containing the differences between two
+dictionaries. It identifies key-value pairs present in new but not in old,
+as well as key-value pairs in old with different values in new.
+
+# _class_ User(**kwarg)
+The `User` class represents a user registered with the Auth0 application. It
+is constructed using information returned by successful authentication
+operations performed by the AuthEngine. The `User` object offers various
+functionalities, including updating information on the Auth0 server and
+providing direct access to database records through a custom backend. All
+the Open ID Claims are available as property.
+
+#### Args:
+
+	**kwarg: keyword arguments of user's information
+
+Along with that here are some object specific properties:
+
+### UPDATABLE_ATTRIBUTES
+A list of keys for user attributes that can be updated in the Auth0
+server through the Management API.
+
+### property User.id
+The user's unique ID ("sub", according to the OIDC terminology).
+
+### property User.db
+This property invokes the the configured USER_DB_BACKEND with a
+reference to itself as the first argument and returns the database
+record returned by USER_DB_BACKEND
+		
+See user_object documentation for details.
+
+These are the methods available in a user object:
+
+### User.__bool__()
+This method checks the sub, the access token, and the ID token to
+determine if the user object represents a valid user. If the object
+represents a valid user, it returns `True`; `False` otherwise. If an
+attribute with the name error exists in the object, it creates an
+AuthEngineError object with the error information, sets the error
+attribute to this object, and returns `False`.
+
+### User.__eq__(__user: object)
+This method compares the current user object with another user object
+to determine if they represent the same user.
+
+#### Args:
+
+	__user (User): `User` to compare with.
+
+#### Returns:
+	True if __user is same; `False` otherwise.
+
+### User.set_db_backend(_db_backend)
+This method allows setting a different database backend for a `User`
+object. It is particularly useful when working with multiple user
+databases. If the user record is not found in the default user database
+backend, set the desired user database backend using this method before
+accessing the `User.db` property. This method assigns the _db_backend
+parameter as the database backend to the `User` object. Once the desired
+user database backend is set, accessing the `User.db` property will
+trigger the assigned backend to look up the user record.
+
+#### Args:
+
+	_db_backend (Any): `User` Database Backend to set.
+	
+### User.valid_user_key(key)
+This method checks whether a provided key is a valid user attribute key
+recognized by the Auth0 Management API.
+
+#### Args:
+
+    key (str): key to check.
+		
+#### Returns:
+
+	`True` if key is valid; `False` otherwise.
+
+### User.validate_user_dict(data)
+This method validates a provided dictionary of user data against the
+list of valid user attribute keys. 
+
+#### Args:
+
+	data (dict): dictionary of user data to validate
+
+#### Raises:
+
+	If any invalid key is present, it raises an `AuthEngineError`
+	exception.
+
+### User.to_dict()
+This method returns a dictionary representation of the user data,
+ensuring it contains only valid keys that can be sent for update to the
+Management API.
+
+### User.changed_user_data()
+This method returns a dictionary containing only the user data that has
+been changed since the object's creation or last update.
+
+### User.update(self, [data])
+This method updates the user's data on the Auth0 server. The method
+validates the provided data before updating. If no data is provided,
+it automatically detects which fields have been changed using the
+`User.changed_user_data()` method. Only the changed fields are sent for
+updating to the server.
+
+#### Args:
+
+	data (dict): dictionary containing the attributes to be updated.
+
+#### Returns:
+
+	If the update is successful, the user object is updated with the
+	new data and the method returns `True`. If any errors occur, it
+	returns the error. If there is no data to update, it simply returns
+	`True`.

@@ -104,7 +104,38 @@ Signs in a user using the authorization code grant received from the identity pr
 Upon parsing the response, it sets session in request and return a User instance. Otherwise, an AuthEngineError instance with error information is returned, request session is unchanged.
 
 ### AuthEngine.__signup__(request, email, password, [connection, username, user_metadata, given_name, family_name, name, nickname, picture, signin, keep_signed_in])
-Sign up a user using email, password, and other provided information. picture is a URL representing the profile picture. If signin is set, a session cookie is set in the request. keep_signed_in defines whether or not to fetch a refresh token and is only used if signin is set.
+This function allows you to sign up a user with their email address, password, and any additional information specified in your Auth0 configuration. keep_signed_in defines whether or not to fetch a refresh token.
+
+Args:
+	request (HttpRequest): Django HttpRequest
+
+	email (str): The user's email address.
+
+	password (str): The user's desired password.
+
+	connection (str): The name of the database connection where
+		this user should be created. By default it uses the
+		"Username-Password-Authentication" connection.
+
+	username (str, optional): The user's username, if required by the
+		database connection.
+
+	user_metadata (dict, optional): Additional key-value information to
+		store for the user. Some limitations apply, see:
+		https://auth0.com/docs/metadata#metadata-restrictions
+
+	given_name (str, optional): The user's given name(s).
+
+	family_name (str, optional): The user's family name(s).
+
+	name (str, optional): The user's full name.
+
+	nickname (str, optional): The user's nickname.
+
+	picture (str, optional): A URI pointing to the user's picture.
+
+	keep_signed_in (bool): Whether or not to fetch refresh token for
+		refreshing access token next time.
 
 If the user is successfully signed up, session is set in request and return a User instance. Otherwise, an AuthEngineError instance with error information is returned, request session is unchanged.
 
