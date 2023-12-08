@@ -177,7 +177,7 @@ def signin_user(request):
 		request,
 		username = email,
 		password = password,
-	keep_signed_in = True,
+		keep_signed_in = True,
 	)
 	if user:
 		# successfully signed in
@@ -194,7 +194,7 @@ Example:
 
 ```
 
-def home(request: HttpRequest):
+def home(request):
 	user = request.user
 	if user:
 		# successfully authentication
