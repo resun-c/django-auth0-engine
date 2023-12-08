@@ -71,8 +71,7 @@ USER_DB_BACKEND = UserDB			# UserDB is a class with database control
 See the [User Database](#user-database) section for more details.
 
 # Usage
-
-Django Auth0 Engine provides a comprehensive set of tools for managing user authentication, authorization, and resources within your Django application. The `AuthEngine` class facilitates user authentication and user registration. The `ManagementEngine` aims at resource management.
+Django Auth0 Engine provides a comprehensive set of tools for managing user authentication, authorization, and resource management within your Django application. The `AuthEngine` class facilitates user authentication and user registration. The `ManagementEngine` aims at resource management.
 
 ## Authentication
 
