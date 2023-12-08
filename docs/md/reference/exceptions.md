@@ -7,7 +7,7 @@ This is a custom exception class used by various methods in this module. It
 encapsulates information about the error encountered during the
 authentication process and other processes.
 
-##  Args:
+## Args:
 
 	error (str, optional): A string representing the name of the error.
 		
