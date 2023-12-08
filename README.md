@@ -95,7 +95,7 @@ Django Auth0 Engine provides a comprehensive set of tools for managing user auth
 
 ### 1. Signing up:
 
-The `AuthEngine.signup()` method helps you register users with Auth0. To use it, simply provide a Django `HttpRequest` object, the user's email address, password, and any other information needed by your specific Auth0 setup (see the [AuthEngine.signup()](docs/reference/md/auth_engine.md#authenginesignuprequest-email-password-connection-username-user_metadata-given_name-family_name-name-nickname-picture-signin-keep_signed_in) documentation for more details).
+The `AuthEngine.signup()` method helps you register users with Auth0 application. To use it, simply provide a Django `HttpRequest` object, the user's email address, password, and any other information needed by your specific Auth0 setup (see the [AuthEngine.signup()](docs/reference/md/auth_engine.md#authenginesignuprequest-email-password-connection-username-user_metadata-given_name-family_name-name-nickname-picture-signin-keep_signed_in) documentation for more details).
 
 Upon successful signup, it sets the session cookie in the request object and returns a `User` object. Otherwise, an `AuthEngineError` object with error information is returned; the request session is unchanged. A verification mail is also sent to the email address.
 
