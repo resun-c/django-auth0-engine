@@ -49,7 +49,7 @@ See the [SessionAuthMiddleware](docs/reference/md/middleware.md#class-sessionaut
 
 ### HeaderAuthMiddleware
 
-To authenticate requests of your API, use this middleware. It is like `SessionAuthMiddleware`, but instead of using sessions, it uses the Bearer token from the Authorization header for authentication.
+To authenticate the requests of your API, use this middleware. It is like `SessionAuthMiddleware`, but instead of using sessions, it uses the Bearer token from the Authorization header for authentication.
 
 To use it, add this to your `MIDDLEWARE` list:
 
