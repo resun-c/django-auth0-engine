@@ -72,38 +72,15 @@ See the [User Database](#user-database) section for more details.
 
 # Usage
 
-Django Auth0 Engine provides a comprehensive set of tools for managing user authentication, authorization, and resources within your Django application. The `AuthEngine` class facilitates with user authentication and user registration. The `ManagementEngine` aims on resource management.
+Django Auth0 Engine provides a comprehensive set of tools for managing user authentication, authorization, and resources within your Django application. The `AuthEngine` class facilitates user authentication and user registration. The `ManagementEngine` aims at resource management.
 
 ## Authentication
 
 ### 1. Signing up:
 
+The AuthEngine.signup() method helps you register users with Auth0. To use it, simply provide a Django HttpRequest object, the user's email address, password, and any other information needed by your specific Auth0 setup (see the [AuthEngine.signup()](docs/reference/md/auth_engine.md#authenginesignuprequest-email-password-connection-username-user_metadata-given_name-family_name-name-nickname-picture-signin-keep_signed_in) documentation for more details).
 
-The AuthEngine.signup() method helps you register users with Auth0. To use it, simply provide a Django HttpRequest object, the user's email address, password, and any other information needed by your specific Auth0 setup (see the [AuthEngine.signup()](docs/reference/md/auth_engine.md#authenginesignuprequest-email-password-connection-username-user_metadata-given_name-family_name-name-nickname-picture-signin-keep_signed_in) documentation for more details). Upon successful signup:
-
-- An `AuthEngineResponse` object is returned, containing a message and confirmation information.
-
-- A verification email is automatically sent to the provided email address.
-
-- The user remains unauthenticated at this stage and needs to log in after verifying their email.
-
-- Optionally, you can enable automatic signin after signup by setting the `signin` argument to `True`. This will automatically authenticate the user after successful signup and create session cookies for subsequent requests and set the `request.user` with a `User` object.
-
-Here's a breakdown of the signup process:
-
-1. Call `AuthEngine.signup()` with user details.
-
-2. Upon success, receive an `AuthEngineResponse` and a verification email.
-
-3. Verify the user's email address.
-
-4. Either:
-
-	- Sign in manually using AuthEngine.signin() method.
-
-	- (Optional) Sign in automatically by setting `signin` argument to `True`.
-
-Note: Verification is crucial for ensuring user security and preventing unauthorized account creation.
+Upon successful signup, it sets the session cookie in the request object and returns a `User` object. Otherwise, an `AuthEngineError` object with error information is returned; the request session is unchanged. A verification mail is also sent to the email address.
 
 Example:
 
@@ -123,42 +100,15 @@ def signup_user(request):
 	)
 
 	if user:
-		# user successfully created
+		# successful user creation
 		...
 	else:
-		# unsuccessful to created user
+		# unsuccessful user creation
 		...
 
 ```
 
-Sign in automatically:
-
-```
-from django_auth0_engine import AuthEngine
-
-def signup_user(request):
-	username = request.POST["username"]
-	email = request.POST["email"]
-	password = request.POST["password"]
-
-	user = AuthEngine().signup(
-		request = request,
-		email = email,
-		password = password,
-		username = username,
-		signin = True
-	)
-
-	if user:
-		# user successfully created
-		...
-	else:
-		# unsuccessful to created user
-		...
-
-```
-
-It has other functionality for finer control over signup process. See the [AuthEngine.signup()](docs/reference/md/auth_engine.md#authenginesignuprequest-email-password-connection-username-user_metadata-given_name-family_name-name-nickname-picture-signin-keep_signed_in) documentation for details.
+It has other functionality for finer control over the signup process. See the [AuthEngine.signup()](docs/reference/md/auth_engine.md#authenginesignuprequest-email-password-connection-username-user_metadata-given_name-family_name-name-nickname-picture-signin-keep_signed_in) documentation for details.
 
 ### 2. Signup/Signin with provider
 
@@ -188,7 +138,7 @@ def callback(request):
 ### 3. Signing in:
 The signing in process is performed by the `AuthEngine.signin()` method. This method takes a Django `HttpRequest` object, along with the user's email address as username, password, and any additional information required by Auth0 (see the [AuthEngine.signin()](docs/reference/md/auth_engine.md#authenginesigninrequest-username-password-scope-realm-audience-grant_type-forwarded_for-keep_signed_in) documentation for details).
 
-Upon authentication, it sets session in the request object and return a `User` object. Otherwise, an `AuthEngineError` object with error information is returned, request session is unchanged.
+Upon successful signin, it sets the session cookie in the request object and returns a `User` object. Otherwise, an `AuthEngineError` object with error information is returned; the request session is unchanged.
 
 Example:
 
