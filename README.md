@@ -100,7 +100,7 @@ Django Auth0 Engine provides a comprehensive set of tools for managing user auth
 
 ## Authentication
 
-### Signing up:
+### 1. Signing up:
 
 User signup is facilitated by the `AuthEngine.signup()` method. This method takes a Django `HttpRequest` object, along with the user's email address, password, and any optional additional information required by your Auth0 configuration (see the [AuthEngine.signup()](docs/reference/md/auth_engine.md#authenginesignuprequest-email-password-connection-username-user_metadata-given_name-family_name-name-nickname-picture-signin-keep_signed_in) documentation for details). Upon successful signup:
 
@@ -183,7 +183,7 @@ def signup_user(request):
 
 It has other functionality for finer control over signup process. See the [AuthEngine.signup()](docs/reference/md/auth_engine.md#authenginesignuprequest-email-password-connection-username-user_metadata-given_name-family_name-name-nickname-picture-signin-keep_signed_in) documentation for details.
 
-### Signup/Signin with provider
+### 2. Signup/Signin with provider
 
 The `AuthEngine.signin_code()` method allows sign in using various identity providers (IdPs), including social networks (Google, Facebook, Twitter, LinkedIn), enterprise systems (Microsoft Active Directory), and others.
 
@@ -208,7 +208,7 @@ def callback(request):
 	    ...
 ```
 
-### Signing in:
+### 3. Signing in:
 The signing in process is performed by the `AuthEngine.signin()` method. This method takes a Django `HttpRequest` object, along with the user's email address as username, password, and any additional information required by Auth0 (see the [AuthEngine.signin()](docs/reference/md/auth_engine.md#authenginesigninrequest-username-password-scope-realm-audience-grant_type-forwarded_for-keep_signed_in) documentation for details).
 
 Upon authentication, it sets session in the request object and return a `User` object. Otherwise, an `AuthEngineError` object with error information is returned, request session is unchanged.
@@ -260,7 +260,7 @@ def signin_user(request):
 	    ...
 ```
 
-### Authenticate request:
+### 4. Authenticate request:
 If you have added the `SessionAuthMiddleware` the user authentication happens automatically. Access the authenticated user directly through the `request.user` attribute in your Django views.
 
 However, manual authentication can be performed by the `AuthEngine.authenticate()` method. This method authenticates a Django `HttpRequest` object and upon successful authentication, it returns a `User` object; `AuthEngineError` otherwise. See the [AuthEngine.authenticate()](docs/reference/md/auth_engine.md#authengineauthenticaterequest) documentation for details.
