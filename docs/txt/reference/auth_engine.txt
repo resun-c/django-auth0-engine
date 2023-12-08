@@ -1,6 +1,6 @@
 class AuthVerifierEngine(issuer, jwks_url, audience, algorithms)
 	A wrapper of auth0.authentication.token_verifier.TokenVerifier. The
-	auth0.authentication.token_verifier.TokenVerifier.verify  function is used
+	auth0.authentication.token_verifier.TokenVerifier.verify function is used
 	to validate id tokens.
 
 class AuthEngine
@@ -166,12 +166,12 @@ class AuthEngine
 		returned, request session is unchanged.
 
 	AuthEngine.signup(request, email, password, [connection, username,
-	user_metadata, given_name, family_name, name, nickname, picture, signin,
+	user_metadata, given_name, family_name, name, nickname, picture,
 	keep_signed_in])
 		This function allows you to sign up a user with their email address,
 		password, and any additional information specified in your Auth0
-		configuration. You can also choose to automatically sign the user in
-		after successful signup.
+		configuration. keep_signed_in defines whether or not to fetch a refresh
+		token.
 		
 		Args:
 			request (HttpRequest): Django HttpRequest
@@ -201,17 +201,12 @@ class AuthEngine
 
 			picture (str, optional): A URI pointing to the user's picture.
 
-			signin (bool, optional): Whether to keep the user signed in or not.
-
 			keep_signed_in (bool): Whether or not to fetch refresh token for
-				refreshing access token next time. Has no effect if signin is
-				not set.
+				refreshing access token next time.
 
-		If the user is successfully signed up, a AuthEngineResponse is returned
-		with a message. If the signin flag is set it keep the user signed in
-		and return a User object and sets session cookie. If failed to sign
-		up, an AuthEngineError object with error information is returned,
-		request session is unchanged.
+		If the user is successfully signed up, session is set in request and
+		return a User instance. Otherwise, an AuthEngineError instance with
+		error information is returned, request session is unchanged.
 
 		Example:
 		
