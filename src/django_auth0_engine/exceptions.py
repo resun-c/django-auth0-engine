@@ -4,22 +4,17 @@ from auth0 import Auth0Error
 from .response import AuthEngineResponse
 
 class AuthEngineError(Exception, AuthEngineResponse):
-	"""Custom exception class raised by different methods of the AuthEngine class.
-	It encapsulates information about the error encountered during the
-	authentication process. error is a string representing the name of the
-	error. description is short explanation of the error.
+	"""This is a custom exception class used by various methods in this module. It
+	encapsulates information about the error encountered during the
+	authentication process and other processes.
 
-    Args:
-        error (str, optional): Name of the error. if not provided, kwarg is searched
-			for "error" and "error_code" key and treated as the name of the error.
+	Args:
+		error (str, optional): A string representing the name of the error.
+		
+		description (str, optional): A short explanation of the error.
 
-        description (str, optional): A description of error. if not provided,
-			kwarg is searched for "error_description" and "message" key and treated as
-			the description.
-
-        kwarg (keyword arguments): Additional arguments. if a value of error is already
-			provided and an "error" key with a different value exists in kwarg, then the
-			value from kwarg it is held in additional_error. The same is applied for description.
+		**kwarg: keyword argument containing additional information about the
+			error.
 
     """
 	
@@ -39,33 +34,15 @@ class AuthEngineError(Exception, AuthEngineResponse):
 		self.error:str | None					= error
 		self.description:str | None				= description
 		self.message:str | None					= None
-		self.additional_error:str | None		= None
-		self.additional_description:str | None	= None
 
 		if not self.error:
-			if "error" in kwarg:
-				self.error = kwarg.pop("error")
-			elif "error_code" in kwarg:
+			if "error_code" in kwarg:
 				self.error = kwarg.pop("error_code")
 			else:
-				self.error = "AuthEngineBaseError.Unknown"
-		
-		if not self.description:
-			if "error_description" in kwarg:
-				self.description = kwarg.pop("error_description")
-			elif "message" in kwarg:
-				self.description = kwarg.pop("message")
-			else:
-				self.error = "None"
+				self.error = "Unknown AuthEngineError"
 
-		if self.error and "error" in kwarg:
-			if self.error != kwarg.get("error"):
-				self.additional_error = kwarg.get("error")
-			kwarg.pop("error")
-		if self.description and "error_description" in kwarg:
-			if self.description != kwarg.get("error_description"):
-				self.additional_error = kwarg.get("error_description")
-			kwarg.pop("error_description")
+		if not self.description:
+			self.description = "Unavailable"
 
 		self.__dict__.update(**kwarg)
 		AuthEngineResponse.__init__(self)
@@ -77,8 +54,8 @@ class AuthEngineError(Exception, AuthEngineResponse):
 			self.add_note(self.message)
 
 	def __str__(self) -> str:
-		"""Returns a formatted string with detailed information about the error
-		using pprint.pformat().
+		"""Returns a formatted string containing all properties of the error. The
+		string is formatted using pprint.pformat().
 		"""
 		return_dict = {}
 		for key in self.__dict__:
