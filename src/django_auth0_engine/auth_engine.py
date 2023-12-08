@@ -388,13 +388,11 @@ class AuthEngine:
 		name: str | None = None,
 		nickname: str | None = None,
 		picture: str | None = None,
-		signin: bool = False,
 		keep_signed_in: bool = False
 	) -> AuthEngineResponse | User | None:
 		"""Sign up a user using email, password, and other provided information.
-		picture is a URL representing the profile picture. If signin is set, a
-		a session cookie is set in the request. keep_signed_in defines whether
-		or not to fetch a refresh token and is only used if signin is set.
+		picture is a URL representing the profile picture. keep_signed_in
+		defines whether or not to fetch a refresh token.
 
 		If the user is successfully signed up, session is set in request and
 		return a User instance. Otherwise, an AuthEngineError instance with
@@ -425,10 +423,7 @@ class AuthEngine:
 
 			picture (str, optional): A URI pointing to the user's picture.
 
-			signin (bool, optional): Wheather to keep the user signed in or not.
-
-			keep_signed_in (bool): Wheather or not to fetch refresh token for refereshing access token next time.
-				Has no effect if signin is not set.
+			keep_signed_in (bool): Whether or not to fetch refresh token for refreshing access token next time.
 
 		Returns:
 			User or AuthEngineError
@@ -458,7 +453,7 @@ class AuthEngine:
 
 		# if signin is set add session cookies in request
 
-		if response and signin:
+		if response:
 			response = self.signin(
 				request,
 				email,
