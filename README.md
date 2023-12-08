@@ -11,10 +11,12 @@ Django Auth0 Engine is a simple Django Authentication Backend that utilizes OAut
 
 - functionality for resource management implemented in the User object.
 
-### Get Started:
+### Getting Started:
 
 1. Configure the engine
+   
 2. Add middleware
+   
 3. Access request.user to perform the authentication process.
 
 # Install
