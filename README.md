@@ -1,41 +1,54 @@
 # Django Auth0 Engine
-Django Auth0 Engine is a simple Django Authentication Backend that utilizes OAuth, OIDC, and Auth0 technology to perform authentication and authorization securely. It focuses on empowering developers to build secure and user-friendly applications with simplified authentication and resource management.
 
-### Advantages:
+Django Auth0 Engine is a simple Django Authentication Backend that utilizes
+OAuth, OIDC, and Auth0 technology to perform authentication and
+authorization securely. It focuses on empowering developers to build secure
+and user-friendly applications with simplified authentication and resource
+management.
 
-- Secured authentication system employing OAuth, OIDC, and Auth0 technology.
+## 1. Advantages:
 
-- Automatic user authentication through middleware; authenticated user readily available in request.user as User object.
+- Secured authentication system employing OAuth, OIDC, and Auth0
+	technology.
 
-- Comprehensive and flexible User object with directly accessible database records
+- Automatic user authentication through middleware; authenticated user
+	readily available in `request.user` as `User` object.
 
-- functionality for resource management implemented in the User object.
+- Comprehensive and flexible User object with directly accessible
+	database records
 
-### Getting Started:
+- functionality for resource management implemented in the `User` object.
 
-1. Configure the engine
+## 2. Getting Started:
+
+1. Install and Configure the engine
    
 2. Add middleware
    
-3. Access request.user to perform the authentication process.
+3. Access `request.user` to perform the authentication process.
 
-# Install
+## 3. Setup
+
+### 3.1 Installation
 
 ```
-py -m pip install --index-url https://test.pypi.org/simple/ --no-deps django-auth0-engine
+py -m pip install --index-url https://test.pypi.org/simple/ \
+--no-deps django-auth0-engine
 ```
 
-# Setup
-
-## Configuration
+### 3.2 Configuration
 
 1. Create an Auth0 application and set it up first.
 
-2. Collect the `client_id` and `client_secret` of the application, tenant `domain` name and API `audience` (for only authentication purposes it is the client_id)
+2. Collect the `client_id` and `client_secret` of the application,
+	tenant `domain` name and API `audience` (for only authentication
+	purposes it is the `client_id`)
 
-3. Add the `"django_auth0_engine"` app to the `INSTALLED_APPS` list in settings.
+3. Add the `"django_auth0_engine"` app to the `INSTALLED_APPS` list in
+	settings.
 
-4. In settings define these attributes with `client_id`, `client_secret`, tenant `domain` and API `audience`:
+4. In settings define these attributes with `client_id`,
+	`client_secret`, tenant `domain` and API `audience`:
 
 ```
 AUTH0_CLIENT_ID		=	"client_id"
@@ -47,15 +60,18 @@ AUTH0_DOMAIN		=	"tenant domain"
 AUTH0_AUDIENCE		=	"API audience"
 ```
 
-You can set the `AUTH0_AUDIENCE` to `AUTH0_CLIENT_ID` or ignore it if you are not intending to use anything other than authentication.
+You can set the `AUTH0_AUDIENCE` to `AUTH0_CLIENT_ID` or ignore it
+if you are not intending to use anything other than authentication.
 
-## Adding the middlewares
+### 3.3 Adding the middlewares
 
-Django Auth0 Engine comes with two middleware to make the authentication process easy and resource-effective.
+Django Auth0 Engine comes with two middleware to make the
+authentication process easy and resource-effective.
 
-### SessionAuthMiddleware
+#### 3.3.1. SessionAuthMiddleware
 
-This middleware authenticates the requests made from the browser using the ID tokens from the session.
+This middleware authenticates the requests made from the browser using
+the ID tokens from the session.
 
 To use it, add this to your `MIDDLEWARE` list:
 
@@ -65,9 +81,11 @@ To use it, add this to your `MIDDLEWARE` list:
 
 See the [SessionAuthMiddleware](docs/reference/md/middleware.md#class-sessionauthmiddleware) documentation for details.
 
-### HeaderAuthMiddleware
+#### 3.3.2. HeaderAuthMiddleware
 
-To authenticate the requests of your API, use this middleware. It is like `SessionAuthMiddleware`, but instead of using sessions, it uses the Bearer token from the Authorization header for authentication.
+To authenticate the requests of your API, use this middleware. It is
+like `SessionAuthMiddleware`, but instead of using sessions, it uses
+the `Bearer` token from the `Authorization` header for authentication.
 
 To use it, add this to your `MIDDLEWARE` list:
 
@@ -77,27 +95,43 @@ To use it, add this to your `MIDDLEWARE` list:
 
 See the [SessionAuthMiddleware](docs/reference/md/middleware.md#class-headerauthmiddleware) documentation for details.
 
-You can use both of these middleware in the same project, and they're compatible with Django's built-in authentication middleware.
+You can use both of these middleware in the same project, and they're
+compatible with Django's built-in authentication middleware.
 
-## Setting User Database Backend
-To integrate a database for users, assign a custom database backend class to the  `USER_DB_BACKEND` attribute in settings. Then you can access the user's database record through the `User.db` property directly from your code.
+### 3.4 Setting User Database Backend
+
+To integrate a database for users, assign a custom database backend
+class to the `USER_DB_BACKEND` attribute in settings. Then you can
+access the user's database record through the `User.db` property
+directly from your code.
 
 ```
-USER_DB_BACKEND = UserDB			# UserDB is a class with database control
+USER_DB_BACKEND = UserDB			# UserDB is a class with database
+									# control
 ```
 
-See the [User Database](#user-database) section for more details.
+See the [User Database Backend](#user-database) section bellow for more details.
 
-# Usage
-Django Auth0 Engine provides a comprehensive set of tools for managing user authentication, authorization, and resource management within your Django application. The `AuthEngine` class facilitates user authentication and user registration. The `ManagementEngine` aims at resource management.
+## 4. Usage
 
-## Authentication
+Django Auth0 Engine provides a comprehensive set of tools for managing
+user authentication, authorization, and resource management within your
+Django application. The `AuthEngine` class facilitates user
+authentication and user registration. The `ManagementEngine` aims at
+resource management.
 
-### 1. Signing up:
+### 4.1. Signing up:
 
-The `AuthEngine.signup()` method helps you register users with Auth0 application. To use it, simply provide a Django `HttpRequest` object, the user's email address, password, and any other information needed by your specific Auth0 setup (see the [AuthEngine.signup()](docs/reference/md/auth_engine.md#authenginesignuprequest-email-password-connection-username-user_metadata-given_name-family_name-name-nickname-picture-signin-keep_signed_in) documentation for more details).
+The `AuthEngine.signup()` method helps you register users with Auth0
+application. To use it, simply provide a Django HttpRequest object, the
+user's email address, password, and any other information needed by
+your specific Auth0 setup (see the [AuthEngine.signup()](docs/reference/md/auth_engine.md#authenginesignuprequest-email-password-connection-username-user_metadata-given_name-family_name-name-nickname-picture-signin-keep_signed_in)
+documentation for more details).
 
-Upon successful signup, it sets the session cookie in the request object and returns a `User` object. Otherwise, an `AuthEngineError` object with error information is returned; the request session is unchanged. A verification mail is also sent to the email address.
+Upon successful sign up, it sets the session cookie in the request
+object and returns a `User` object. Otherwise, an `AuthEngineError` object
+with error information is returned; the request session is unchanged. A
+verification mail is also sent to the email address.
 
 Example:
 
@@ -122,20 +156,26 @@ def signup_user(request):
 	else:
 		# unsuccessful user creation
 		...
-
 ```
 
-It has other functionality for finer control over the signup process. See the [AuthEngine.signup()](docs/reference/md/auth_engine.md#authenginesignuprequest-email-password-connection-username-user_metadata-given_name-family_name-name-nickname-picture-signin-keep_signed_in) documentation for details.
+It has other functionality for finer control over the sign up process.
+See the [AuthEngine.signup()](docs/reference/md/auth_engine.md#authenginesignuprequest-email-password-connection-username-user_metadata-given_name-family_name-name-nickname-picture-signin-keep_signed_in) documentation for details.
 
-### 2. Signup/Signin with provider
+### 4.2. Sign up/Sign in with provider
 
-The `AuthEngine.signin_code()` method allows sign-in using various identity providers (IdPs), including social networks (Google, Facebook, Twitter, LinkedIn), enterprise systems (Microsoft Active Directory), and others.
+The `AuthEngine.signin_code()` method allows sign-in using various
+identity providers (IdPs), including social networks (Google, Facebook,
+Twitter, LinkedIn), enterprise systems (Microsoft Active Directory),
+and others.
 
-This method takes a Django `HttpRequest` object and the grant code received from the selected IdP as argument.
+This method takes a Django `HttpRequest` object and the grant code
+received from the selected IdP as argument.
 
-Upon authentication, it sets the session cookie in the request object and returns a `User` object. Otherwise, an `AuthEngineError` object with error information is returned; the request session is unchanged.
+Upon authentication, it sets the session cookie in the request object
+and returns a `User` object. Otherwise, an `AuthEngineError` object with
+error information is returned; the request session is unchanged.
 
-Example
+Example:
 
 ```
 from django_auth0_engine import AuthEngine
@@ -152,10 +192,16 @@ def callback(request):
 	    ...
 ```
 
-### 3. Signing in:
-The sign-in process is done by the `AuthEngine.signin()` method. This method takes a Django `HttpRequest` object, the user's email address as username, password, and any additional information required by Auth0 (see the [AuthEngine.signin()](docs/reference/md/auth_engine.md#authenginesigninrequest-username-password-scope-realm-audience-grant_type-forwarded_for-keep_signed_in) documentation for details).
+### 4.3. Signing in:
 
-Upon successful signin, it sets the session cookie in the request object and returns a `User` object. Otherwise, an `AuthEngineError` object with error information is returned; the request session is unchanged.
+The sign in process is done by the `AuthEngine.signin()` method. This
+method takes a Django `HttpRequest` object, the user's email address as
+username, password, and any additional information required by Auth0
+(see the [AuthEngine.signin()](docs/reference/md/auth_engine.md#authenginesigninrequest-username-password-scope-realm-audience-grant_type-forwarded_for-keep_signed_in) documentation for details)..
+
+Upon successful sign in, it sets the session cookie in the request
+object and returns a `User` object. Otherwise, an `AuthEngineError` object
+with error information is returned; the request session is unchanged.
 
 Example:
 
@@ -179,7 +225,11 @@ def signin_user(request):
 	    ...
 ```
 
-To prolonged user sessions without requiring manual intervention you can set the `keep_signed_in` parameter to True. It fetches a refresh token. So when the user session expires, other methods of `AuthEngine` automatically exchange the refresh token with a new ID token to keep the user signed in.
+To prolonged user sessions without requiring manual intervention you
+can set the `keep_signed_in` parameter to True. It fetches a refresh
+token. So when the user session expires, other methods of `AuthEngine`
+automatically exchange the refresh token with a new ID token to keep
+the user signed in.
 
 Example:
 
@@ -204,13 +254,15 @@ def signin_user(request):
 	    ...
 ```
 
-### 4. Authenticate request:
-If you have added the `SessionAuthMiddleware` the user authentication happens automatically. Access the authenticated user directly through the `request.user` property in your Django views.
+### 4.4. Authenticate request:
+
+If you have added the `SessionAuthMiddleware` the user authentication
+happens automatically. Access the authenticated user directly through
+the `request.user` property in your Django views.
 
 Example:
 
 ```
-
 def home(request):
 	user = request.user
 	if user:
@@ -221,7 +273,11 @@ def home(request):
 		...
 ```
 
-However, manual authentication can be done by the `AuthEngine.authenticate()` method. This method authenticates a Django `HttpRequest` object and upon successful authentication, it returns a `User` object; `AuthEngineError` otherwise. See the [AuthEngine.authenticate()](docs/reference/md/auth_engine.md#authengineauthenticaterequest) documentation for details.
+However, manual authentication can be done by the
+`AuthEngine.authenticate()` method. This method authenticates a Django
+`HttpRequest` object and upon successful authentication, it returns a
+`User` object; `AuthEngineError` otherwise. See the
+[AuthEngine.authenticate()](docs/reference/md/auth_engine.md#authengineauthenticaterequest) documentation for details.
 
 Example:
 
@@ -231,42 +287,57 @@ from django_auth0_engine import AuthEngine
 def aview(request):
 	user = AuthEngine().authenticate(request)
 
-	if user:
-		# successful authentication
-		...
-	else:
-		# unsuccessful authentication
-		...
+if user:
+	# successful authentication
+	...
+else:
+	# unsuccessful authentication
+	...
 ```
 
-## User object
+## 5. User object
 
-The User object is a fundamental element of the Django Auth0 Engine and plays a critical role in user management within your application. It resembles the standard Django User object but extends its capabilities specifically by leveraging OIDC and Auth0 technologies.
+The `User` object is a crucial element of this module and plays a
+critical role in user management within your application. It' just like
+the standard Django `User` object but it has capabilities to leveraging
+OIDC and Auth0 technologies.
 
-### User Database
-The `User` object in Django Auth0 Engine is built using OpenID Connect (OIDC) information obtained from Auth0 ID tokens. This allows for a lightweight representation of the user without requiring database interaction by default. However, the `User` object provides functionalities for seamlessly integrating with your chosen database backend.
+### 5.1 User Database Backend
 
-To utilize database interaction, configure `USER_DB_BACKEND` with your method or class. Access the user's database entry through the `User.db` property in your code.
+The `User` object in Django Auth0 Engine is constructed using OpenID
+Connect (OIDC) information for a lightweight representation of the
+user. It doesn't have database interaction by default. However, it
+provides functionalities for integrating your chosen database backend.
 
-Backend configuration:
+To enable database interaction, configure `USER_DB_BACKEND` with your
+User Database Backend. Then you can access the user's database record
+through the `User.db` property in your code.
 
-- Method: Set `USER_DB_BACKEND` to a function that receives the user's OIDC attributes as keyword arguments and returns the database entry.
-
-- Class: Set `USER_DB_BACKEND` to a class that can be initialized with the user's OIDC attributes and provides methods for accessing and manipulating the user's database representation.
+See the [Writing User Database Backend](docs/md/user_object.md#writing-user-database-backend) documentation for details on making a User Database Backend.
 
 Here's an example:
+
+in `settings.py`
+
+```
+USER_DB_BACKEND = UserFirestore		# see the Writing User Database
+									# Backend section bellow
+```
+
+in `views.py`
 
 ```
 def home(request):
 	user = request.user
 	if user:
-		user_db = user.db
+		user_record = user.db		# user_record is an instance of
+									# UserFirestore that represents the
+									# document of the user in Firestore
 		...
 	else:
 		# unauthorized
 		...
 ```
 
-See the [examples / user_db_backends.md](docs/examples/user_db_backends.md) documentation for details on making a database backend.
-
-User object has other functionality including multiple database backends. See the [User](docs/reference/md/user.md#class-userkwarg) documentation for details.
+`User` object has other functionality including multiple database
+backends. See the [User](docs/md/user_object.md) documentation for details.
