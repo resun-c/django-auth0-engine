@@ -11,7 +11,9 @@ class SessionAuthMiddleware()
 	to only get invoked when the user property of the request is accessed. This
 	saves both resources and time.
 
-	If no session cookie is present, noting is done.
+	If no session cookie is present, request.user is assigned to an
+	AuthEngineResponse object with message "No user" and has False boolean
+	value.
 
 	Here's an example of authenticating a request after an user has been
 	successfully signed in:
