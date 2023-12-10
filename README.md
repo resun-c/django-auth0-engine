@@ -122,16 +122,13 @@ resource management.
 
 ### 4.1. Signing up:
 
-The `AuthEngine.signup()` method helps you register users with Auth0
-application. To use it, simply provide a Django HttpRequest object, the
+To register a new user, call the `AuthEngine.signup()` method with the
 user's email address, password, and any other information needed by
-your specific Auth0 setup (see the [AuthEngine.signup()](docs/reference/md/auth_engine.md#authenginesignuprequest-email-password-connection-username-user_metadata-given_name-family_name-name-nickname-picture-signin-keep_signed_in)
-documentation for more details).
+your specific Auth0 setup.
 
-Upon successful sign up, it sets the session cookie in the request
-object and returns a `User` object. Otherwise, an `AuthEngineError` object
-with error information is returned; the request session is unchanged. A
-verification mail is also sent to the email address.
+Upon signing up the user, this method sets the session cookie in the
+request and returns a `User` object. If it fails to sign up the user, an
+`AuthEngineError` is returned with proper error information.
 
 Example:
 
@@ -161,6 +158,7 @@ def signup_user(request):
 It has other functionality for finer control over the sign up process.
 See the [AuthEngine.signup()](docs/reference/md/auth_engine.md#authenginesignuprequest-email-password-connection-username-user_metadata-given_name-family_name-name-nickname-picture-signin-keep_signed_in) documentation for details.
 
+
 ### 4.2. Sign up/Sign in with provider
 
 The `AuthEngine.signin_code()` method allows sign-in using various
@@ -168,14 +166,15 @@ identity providers (IdPs), including social networks (Google, Facebook,
 Twitter, LinkedIn), enterprise systems (Microsoft Active Directory),
 and others.
 
-This method takes a Django `HttpRequest` object and the grant code
-received from the selected IdP as argument.
+Call this method with the request, the grant code received from the
+selected IdP, and the redirect URL that was sent to the IdP. The values
+must match.
 
-Upon authentication, it sets the session cookie in the request object
-and returns a `User` object. Otherwise, an `AuthEngineError` object with
-error information is returned; the request session is unchanged.
+Upon authentication, this method sets the session cookie in the request
+and returns a `User` object. If it fails to authentication the user, an
+`AuthEngineError` is returned with proper error information.
 
-Example:
+Example
 
 ```
 from django_auth0_engine import AuthEngine
@@ -194,14 +193,13 @@ def callback(request):
 
 ### 4.3. Signing in:
 
-The sign in process is done by the `AuthEngine.signin()` method. This
-method takes a Django `HttpRequest` object, the user's email address as
-username, password, and any additional information required by Auth0
-(see the [AuthEngine.signin()](docs/reference/md/auth_engine.md#authenginesigninrequest-username-password-scope-realm-audience-grant_type-forwarded_for-keep_signed_in) documentation for details)..
+Call the `AuthEngine.signin()` method with the user's email address as
+username, password, and any additional information required by Auth0 to
+sign in a user.
 
-Upon successful sign in, it sets the session cookie in the request
-object and returns a `User` object. Otherwise, an `AuthEngineError` object
-with error information is returned; the request session is unchanged.
+Upon sign in, this method sets the session cookie in the request and
+returns a `User` object. If it fails to sign in the user, an
+`AuthEngineError` is returned with proper error information.
 
 Example:
 
@@ -225,11 +223,10 @@ def signin_user(request):
 	    ...
 ```
 
-To prolonged user sessions without requiring manual intervention you
-can set the `keep_signed_in` parameter to True. It fetches a refresh
-token. So when the user session expires, other methods of `AuthEngine`
-automatically exchange the refresh token with a new ID token to keep
-the user signed in.
+To keep the user signed in without requiring manual sign-in after the
+sign-in session ends, set the `keep_signed_in` parameter to True. When
+the sign-in session ends other methods of AuthEngine automatically
+fetch a new access token and ID token to keep the user signed in.
 
 Example:
 
@@ -254,6 +251,8 @@ def signin_user(request):
 	    ...
 ```
 
+See the [AuthEngine.signup()](docs/reference/md/auth_engine.md#authenginesignuprequest-email-password-connection-username-user_metadata-given_name-family_name-name-nickname-picture-signin-keep_signed_in) documentation for details.
+
 ### 4.4. Authenticate request:
 
 If you have added the `SessionAuthMiddleware` the user authentication
@@ -273,11 +272,10 @@ def home(request):
 		...
 ```
 
-However, manual authentication can be done by the
-`AuthEngine.authenticate()` method. This method authenticates a Django
-`HttpRequest` object and upon successful authentication, it returns a
-`User` object; `AuthEngineError` otherwise. See the
-[AuthEngine.authenticate()](docs/reference/md/auth_engine.md#authengineauthenticaterequest) documentation for details.
+However, to manually authentication a request call the
+`AuthEngine.authenticate()` method with the request object. Upon
+successful authentication, it returns a `User` object; `AuthEngineError`
+otherwise.
 
 Example:
 
@@ -287,13 +285,15 @@ from django_auth0_engine import AuthEngine
 def aview(request):
 	user = AuthEngine().authenticate(request)
 
-if user:
-	# successful authentication
-	...
-else:
-	# unsuccessful authentication
-	...
+	if user:
+		# successful authentication
+		...
+	else:
+		# unsuccessful authentication
+		...
 ```
+
+See the [AuthEngine.signup()](docs/reference/md/auth_engine.md#authenginesignuprequest-email-password-connection-username-user_metadata-given_name-family_name-name-nickname-picture-signin-keep_signed_in) documentation for details.
 
 ## 5. User object
 
