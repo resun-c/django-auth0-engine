@@ -15,9 +15,7 @@ Django Auth0 Engine
 			readily available in request.user as User object.
 
 		- Comprehensive and flexible User object with directly accessible
-			database records
-
-		- functionality for resource management implemented in the User object.
+			database records and functionality for resource management.
 
 	2. Getting Started:
 
