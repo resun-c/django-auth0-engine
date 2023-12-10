@@ -294,7 +294,9 @@ class AuthEngine:
 				whitespace.
 
 			realm (str, optional): String value of the realm the user belongs.
-				Set this if you want to add realm support at this grant.
+				Set this if you want to add realm support at this grant.By
+				default it uses the
+				"Username-Password-Authentication" connection.
 
 			audience (str, optional): The unique identifier of the target API
 				you want to access.
@@ -319,6 +321,9 @@ class AuthEngine:
 		
 		if not scope:
 			scope = self.Scopes.DEFAULT
+
+		if not realm:
+			realm = self.USERNAME_PASSWORD_REALM
 
 		# if keep_signed_in is set add offline_access in scope
 		if keep_signed_in:

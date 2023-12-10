@@ -146,7 +146,9 @@ error information is returned; the request session is unchanged.
 		whitespace.
 
 	realm (str, optional): String value of the realm the user belongs.
-		Set this if you want to add realm support at this grant.
+		Set this if you want to add realm support at this grant.By
+		default it uses the
+		"Username-Password-Authentication" connection.
 
 	audience (str, optional): The unique identifier of the target API
 		you want to access.
