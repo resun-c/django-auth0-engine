@@ -36,14 +36,14 @@ py -m pip install --index-url https://test.pypi.org/simple/ \
 
 ### 3.2 Configuration
 
-1. Create an Auth0 application and set it up first.
+1. Add the `"django_auth0_engine"` app to the `INSTALLED_APPS` list in
+	settings.
 
-2. Collect the `client_id` and `client_secret` of the application,
+2. Create an Auth0 application and set it up first.
+
+3. Collect the `client_id` and `client_secret` of the application,
 	tenant `domain` name and API `audience` (for only authentication
 	purposes it is the `client_id`)
-
-3. Add the `"django_auth0_engine"` app to the `INSTALLED_APPS` list in
-	settings.
 
 4. In settings define these attributes with `client_id`,
 	`client_secret`, tenant `domain` and API `audience`:
