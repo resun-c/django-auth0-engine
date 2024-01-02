@@ -10,9 +10,8 @@ class DjangoAuth0EngineConfig(AppConfig):
 	verbose_name = "Django Auth0 Engine"
 
 	def ready(self):
-		"""This method fetches different values from settings to be used by the
-		AuthEngine and ManagementEngine. It looks for the following variables
-		in settings:
+		"""Fetches package specific constant values from settings. It looks
+		for the following variables:
 
 	    	AUTH0_CLIENT_ID
 	    		Auth0 application's client_id
@@ -23,7 +22,7 @@ class DjangoAuth0EngineConfig(AppConfig):
 	    	AUTH0_DOMAIN
 	    		Tenant domain
 
-	    	AUTH0_AUDIENCE
+	    	AUTH0_AUDIENCE (optional)
 	    		API audience
 
 	    	AUTH0_DEFAULT_SCOPES (optional)
@@ -40,24 +39,28 @@ class DjangoAuth0EngineConfig(AppConfig):
 			cfg._AUTH0_CLIENT_ID = settings.AUTH0_CLIENT_ID
 		else:
 			raise AuthEngineError(
-				"AuthEngine Not Configured Correctly",
-				"""client_id missing"""
+				loc="DjangoAuth0EngineConfig", 
+				error="AuthEngine Not Configured Correctly",
+				description="client_id missing"
 			)
 
 		if hasattr(settings, "AUTH0_CLIENT_SECRET"):
 			cfg._AUTH0_CLIENT_SECRET	= settings.AUTH0_CLIENT_SECRET
 		else:
 			raise AuthEngineError(
-				"AuthEngine Not Configured Correctly",
-				"""client_secret is missing"""
+				loc="DjangoAuth0EngineConfig", 
+				error="AuthEngine Not Configured Correctly",
+				description="client_secret is missing"
 			)
 
 		if hasattr(settings, "AUTH0_DOMAIN"):
-			cfg._AUTH0_DOMAIN = settings.AUTH0_DOMAIN
+			cfg._AUTH0_DOMAIN			= settings.AUTH0_DOMAIN
+			cfg._MANAGEMENT_AUDIENCE	= f"https://{cfg._AUTH0_DOMAIN}/api/v2/"
 		else:
 			raise AuthEngineError(
-				"AuthEngine Not Configured Correctly",
-				"""domain is missing."""
+				loc="DjangoAuth0EngineConfig", 
+				error="AuthEngine Not Configured Correctly",
+				description="domain is missing."
 			)
 
 		if hasattr(settings, "AUTH0_AUDIENCE"):
@@ -66,8 +69,9 @@ class DjangoAuth0EngineConfig(AppConfig):
 			cfg._AUTH0_AUDIENCE		= cfg._AUTH0_CLIENT_ID
 		else:
 			raise AuthEngineError(
-				"AuthEngine Not Configured Correctly",
-				"""audience is missing."""
+				loc="DjangoAuth0EngineConfig", 
+				error="AuthEngine Not Configured Correctly",
+				description="audience is missing."
 			)
 
 		if hasattr(settings, "DEFAULT_SCOPES"):

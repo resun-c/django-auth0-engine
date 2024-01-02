@@ -1,10 +1,10 @@
 [build-system]
-requires = ["hatchling", "django", "auth0-python"]
+requires = ["hatchling", "django"]
 build-backend = "hatchling.build"
 
 [project]
 name = "django_auth0_engine"
-version = "1.1"
+version = "1.4"
 authors = [
   { name="_resun", email="resun.saif@gmail.com" },
 ]

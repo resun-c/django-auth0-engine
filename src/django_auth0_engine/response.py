@@ -9,14 +9,16 @@ class AuthEngineResponse():
 		**kwarg: keyword argument containing information of the  response.
 	"""
 	def __init__(self, **kwarg) -> None:
-		self.access_token		:str | None
-		self.refresh_token		:str | None
-		self.id_token			:str | None
-		self.token_type			:str | None
-		self.expires_in			:int | None
-		self.message			:str | None
+		self.access_token		:str
+		self.refresh_token		:str
+		self.id_token			:str
+		self.token_type			:str
+		self.expires_in			:int
+		self.message			:str
 		self._bool				:bool			=	False
-		self.token_refreshed	:bool			=	False
+		self._token_refreshed	:bool			=	False
+		self.large_text			:str
+		self.loc				:str
 
 		self.__dict__.update(**kwarg)
 
@@ -49,8 +51,13 @@ class AuthEngineResponse():
 
 		for key in data:
 			if key[0] != '_':
-				yield (key, data[key])
+				yield (key, self.safe(data[key]))
 
+	def safe(self, __value):
+		if isinstance(__value, bytes):
+			return __value.decode()
+		else:
+			return __value
 
 	"""
 	[1] Public and Private variables are defined here:

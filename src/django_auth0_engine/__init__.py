@@ -1,7 +1,7 @@
-from .auth_engine import AuthEngine
+from . import auth_engine as AuthEngine
 from . import cfg
 from .exceptions import AuthEngineError
-from .management_engine import ManagementEngine
+from . import management_engine as ManagementEngine
 from .oidc import OIDCClaimsStruct
 from .response import AuthEngineResponse
 from .user import User

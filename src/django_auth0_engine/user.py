@@ -1,6 +1,8 @@
 from typing import Any
+from django.http import HttpRequest
 from . import cfg
-from .management_engine import ManagementEngine
+from . import auth_engine as AuthEngine
+from . import management_engine as ManagementEngine
 from .oidc import OIDCClaimsStruct
 from .exceptions import AuthEngineError
 from .response import AuthEngineResponse
@@ -62,9 +64,25 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 	def __init__(self, **kwarg) -> None:
 		super().__init__()
 		AuthEngineResponse.__init__(self, **kwarg)
-		self._db_backend				:Any | None		= cfg._USER_DB_BACKEND
-		self._db						:Any | None		= None
-		self._initial_user_dict			:dict			= {}
+		self.app_metadata				:dict
+		self.blocked					:str
+		self.email						:str
+		self.email_verified				:str
+		self.family_name				:str
+		self.given_name					:str
+		self.name						:str
+		self.nickname					:str
+		self.password					:str
+		self.phone_number				:str
+		self.phone_verified				:str
+		self.picture					:str
+		self.username					:str
+		self.user_metadata				:dict
+		self.verify_email				:str
+		self._request					:HttpRequest | None		= None
+		self._db_backend				:Any | None				= cfg._USER_DB_BACKEND
+		self._db						:Any | None				= None
+		self._initial_user_dict			:dict					= {}
 
 		self.__dict__.update(**kwarg)
 		self._initial_user_dict = self.to_dict()
@@ -84,7 +102,9 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 		
 		if hasattr(self, "error"):
 			self._bool = False
-			self.error = AuthEngineError(**self.__dict__)
+			self.error = AuthEngineError(
+					loc="User",
+					**self.__dict__)
 		
 		return self._bool
 
@@ -163,6 +183,7 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 		for key in data:
 			if not self.valid_user_key(key):
 				raise AuthEngineError(
+					loc="User.validate_user_dict",
 					error="Invalid properties in User data",
 					description=f"""Additional properties not allowed: {key}.
 					Consider storing them in app_metadata or user_metadata. See
@@ -212,10 +233,16 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 
 		# if data is not empty update
 		if data:
-			updated_user = ManagementEngine().update_user(self.sub, data)
+			updated_user = ManagementEngine.update_user(self.sub, data)
 			# if data is updated initialized itself with the updated data
 			if updated_user:
-				self.__dict__.update(updated_user.__dict__)
+				# refresh the access token
+				refreshed_user = AuthEngine.refresh_access_token(self._request, self.refresh_token)
+				# update updated_user with new data receved after refreshing the access token
+				updated_user.__dict__.update(dict(refreshed_user))
+				# update the instance itself with the data of updated_user
+				self.__dict__.update(dict(updated_user))
+				# set new _initial_user_dict
 				self._initial_user_dict = self.to_dict()
 				return True
 			else:
