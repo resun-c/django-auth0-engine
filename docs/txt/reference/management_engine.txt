@@ -1,46 +1,33 @@
-class ManagementEngine(domain, auth_engine)
-	This class facilitates administrative tasks on the Auth0 platform,
-	specifically focusing on updating user information.
+The ManagementEngine: Support for management using Auth0 Management API.
 
-	ManagementEngine relies on the same pieces of information that AuthEngine
-	relies on. If any of these required pieces of information is missing, an
-	AuthEngineError is raised.
+Here it primarily focuses on updating user information.
 
-	Each AuthEngine object has these attributes:
+The methods rely on the same set of constants that are fetched from settings.py
+(see apps.py).
 
-	cached_property ManagementEngine._auth0
-		An instance of the Auth0 class from the Auth0 SDK.
+_access_token()
+	Returns an access token for the Management API. It automatically
+	refreshes the token if no access token exists or the existing one is
+	expired. It raises an AuthEngineError if unable to fetch a token.
 
-	cached_property ManagementEngine.token_endpoint
-		An instance of auth0.authentication.GetToken.
+_fetch_management_token()
+	Fetches a Management API access token using the token endpoint.
+	Returns True upon success; an AuthEngineError instance otherwise.
 
-	property ManagementEngine.access_token
-		Return an access token for the Management API. It automatically
-		refreshes the token if it's expired and raises an AuthEngineError if
-		it's unable to do so.
 
-	These are the methods available in a user object:
+_authorize_header(header)
+	Adds Authorization header to the header.
 
-	ManagementEngine.__bool__()
-		Determines if the instance is usable based on the availability of
-		required information.
+update_user(id, body)
+	Updates the attributes of the user defined in body.
 
-	ManagementEngine.fetch_management_token()
-		Fetch a Management API token using the token endpoint. Returns True
-		upon success; False otherwise.
+	Upon successful update, it returns an AuthEngineResponse instance
+	containing the updated attributes. Otherwise, an AuthEngineError instance
+	is returned.
+	
+	id
+		sub (a.k.a id) of the user whose attributes to update.
 
-	ManagementEngine.update_user(id, body)
-		This method updates the attributes of the user.
-
-		Args:
-			id (str): sub (a.k.a id) of the user whose attributes to update.
-
-			body (dict): a dict containing the attributes to update.
-
-		Upon successful update, it returns an AuthEngineResponse object
-		containing the updated attributes. Otherwise, an AuthEngineError object
-		is returned.
-
-	The ManagementEngine class only serves one purpose: updating user
-	information. The update_user() method is typically called by the User class
-	after changing a user's attributes.
+	body
+		a dict containing the attributes to update.
+	
