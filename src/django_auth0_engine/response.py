@@ -1,12 +1,12 @@
 import pprint
 
 class AuthEngineResponse():
-	"""AuthEngineResponse serves as a base class for various response objects
-	returned by different methods of this module. It provides a standardized
-	way to access response data and check for successful operations.
+	"""A base class for various response returned by different functions of
+	this package. It provides a standardized way to access response data and
+	check for successful operations.
 
-	Args:
-		**kwarg: keyword argument containing information of the  response.
+	**kwarg:
+		keyword argument containing information of the  response.
 	"""
 	def __init__(self, **kwarg) -> None:
 		self.access_token		:str
@@ -23,10 +23,9 @@ class AuthEngineResponse():
 		self.__dict__.update(**kwarg)
 
 	def __bool__(self) -> bool:
-		"""Returns the value of the private [1] variable _bool. Various subclasses
-		determine the value of _bool based on the outcome of an operation. Upon
-		successful operation, _bool must be set to True; otherwise, it remains
-		False. By default, _bool is initialized as False.
+		"""Returns the value of the private [1] variable _bool. Various
+		subclasses determine the value of _bool based on the response of an
+		operation. By default, _bool is initialized as False.
 		"""
 		return self._bool
 	
@@ -51,9 +50,10 @@ class AuthEngineResponse():
 
 		for key in data:
 			if key[0] != '_':
-				yield (key, self.safe(data[key]))
+				yield (key, self._safe(data[key]))
 
-	def safe(self, __value):
+	def _safe(self, __value):
+		"""Returns an safe string of __value."""
 		if isinstance(__value, bytes):
 			return __value.decode()
 		else:

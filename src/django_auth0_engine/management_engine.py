@@ -1,42 +1,41 @@
+"""The ManagementEngine: Support for management using Auth0 Management API.
+
+Here it primarily focuses on updating user information.
+
+The methods rely on the same set of constants that are fetched from settings.py
+(see apps.py).
+"""
+
 from .response import AuthEngineResponse
 from .exceptions import AuthEngineError
 from .http import Request, PdefHeader
 from . import cfg
 import time
-
 from pprint import pprint
 
-"""This class facilitates administrative tasks on the Auth0 platform,
-specifically focusing on updating user information.
-ManagementEngine relies on the same pieces of information that AuthEngine
-relies on. If any of these required pieces of information is missing, an
-AuthEngineError is raised.
-"""
-
-def access_token() -> str | None:
-	"""Return an access token for the Management API. It automatically
-	refreshes the token if it's expired and raises an AuthEngineError if
-	it's unable to do so.
+def _access_token() -> str | None:
+	"""Returns an access token for the Management API. It automatically
+	refreshes the token if no access token exists or the existing one is
+	expired. It raises an AuthEngineError if unable to fetch a token.
 	"""
-	if not cfg._BOOL():
+	if not cfg._bool():
 		return None
 	
 	now = time.time() + 120				# added 120s with the time so that the
 										# token is usable for the next 2 minutes
 	if (not cfg._m_access_token) or (cfg._m_access_token_exp > 0 and cfg._m_access_token_exp < now):
-		fetch = fetch_management_token()
-		if fetch:
+		if fetch := _fetch_management_token():
 			return cfg._m_access_token
 		else:
 			raise fetch 				# type: ignore
 	else:
 		return cfg._m_access_token
 
-def fetch_management_token() -> bool | AuthEngineError:
-	"""Fetch a Management API token using the token endpoint. Returns True
-	upon success; False otherwise.
+def _fetch_management_token() -> bool | AuthEngineError:
+	"""Fetches a Management API access token using the token endpoint.
+	Returns True upon success; an AuthEngineError instance otherwise.
 	"""
-	if not cfg._BOOL():
+	if not cfg._bool():
 		return False
 	
 	body = {
@@ -49,7 +48,7 @@ def fetch_management_token() -> bool | AuthEngineError:
 	payload = {}
 
 	try:
-		code_response = Request.post(cfg.Provider.URL.Auth.token(), headers=PdefHeader.CONTENT_JSON, body=body)
+		code_response = Request.post(cfg.Provider.URL.Auth.token, headers=PdefHeader.CONTENT_JSON, body=body)
 		if code_response:
 			payload = code_response.json
 	except:
@@ -68,24 +67,29 @@ def fetch_management_token() -> bool | AuthEngineError:
 	return error
 
 
-def authorize_header(header):
-	if "Authorization" not in header and (token := access_token()):
+def _authorize_header(header):
+	"""Adds Authorization header to the header."""
+	if "Authorization" not in header and (token := _access_token()):
 			header["Authorization"] = f"Bearer {token}"
 
 def update_user(id, body) -> AuthEngineResponse:
-	"""This method updates the attributes of the user.
-	Args:
-		id (str): sub (a.k.a id) of the user whose attributes to update.
-		body (dict): a dict containing the attributes to update.
-	Upon successful update, it returns an AuthEngineResponse object
-	containing the updated attributes. Otherwise, an AuthEngineError object
+	"""Updates the attributes of the user defined in body.
+
+	Upon successful update, it returns an AuthEngineResponse instance
+	containing the updated attributes. Otherwise, an AuthEngineError instance
 	is returned.
+	
+	id (str):
+		sub (a.k.a id) of the user whose attributes to update.
+
+	body (dict):
+		a dict containing the attributes to update.
 	"""
 	return_response:AuthEngineResponse = AuthEngineError(loc="ManagementEngine.update_user")
 
 	url = cfg.Provider.URL.Management.user(id)
 	headers = PdefHeader.CONTENT_JSON | PdefHeader.ACCEPT_JSON
-	authorize_header(headers)
+	_authorize_header(headers)
 	
 	try:
 		update_response = Request.patch(url, headers=headers, body=body)

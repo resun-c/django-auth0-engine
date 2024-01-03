@@ -1,4 +1,4 @@
-"""The AuthEngine: Support for user authentication using Auth0.
+"""The AuthEngine: Support for user authentication using Auth0 Auth API.
 
 Most methods accept a HttpRequest instance as the first argument. This instance
 is used to store authentication-related session data for subsequent requests.
@@ -23,12 +23,12 @@ def verify_id_token(token:str):
 	"""Validates a token and returns the payload. If the token is invalid, an
 	exception is raised.
 
-	token (str)
+	token (str):
 		token to be validated.
 	"""
 	unverified_header = jwt.get_unverified_header(token)
 	alg = unverified_header["alg"]
-	jwks_client = PyJWKClient(cfg.Provider.jwks_url())
+	jwks_client = PyJWKClient(cfg._AUTH0_JWKS_URL)
 	signing_key = jwks_client.get_signing_key_from_jwt(token)
 	
 	try:
@@ -36,7 +36,7 @@ def verify_id_token(token:str):
 			token,
 			signing_key.key,
 			algorithms=[alg],
-			issuer=cfg.Provider.issuer(),
+			issuer=cfg._AUTH0_ISSUER,
 			audience=cfg._AUTH0_AUDIENCE)
 	except:
 		raise
@@ -44,7 +44,7 @@ def verify_id_token(token:str):
 	return claims
 
 @singledispatch
-def parse_response(response:dict[str, Any], request:HttpRequest) -> AuthEngineResponse:
+def parse_response(response_dict:dict[str, Any], request:HttpRequest) -> AuthEngineResponse:
 	"""Parses the response received from various Auth0 endpoints or
 	authentication session data and returns an instance of AuthEngineResponse
 	or its subclass.
@@ -68,37 +68,37 @@ def parse_response(response:dict[str, Any], request:HttpRequest) -> AuthEngineRe
 		loc="AuthEngine.parse_response"
 	)
 
-	if cfg._BOOL and response:
-		if "id_token" in response:
+	if cfg._bool and response_dict:
+		if "id_token" in response_dict:
 			# parse payload from id_token
 			try:
-				id_token_payload = verify_id_token(response["id_token"])
+				id_token_payload = verify_id_token(response_dict["id_token"])
 				# instantiate an User with id_token_payload and data
 				# received in response (i.e. access_token,
 				# refresh_token, expires_in)
-				return_response = User(**(id_token_payload | response))
+				return_response = User(**(id_token_payload | response_dict))
 				return_response._request = request
 			# if invalid token try to refresh token
 			except jwt.ExpiredSignatureError as err:
-				if "refresh_token" in response:
+				if "refresh_token" in response_dict:
 					refreshed = refresh_access_token(
 						request,
-						response["refresh_token"],
-						scope=response.get("scope", None)
+						response_dict["refresh_token"],
+						scope=response_dict.get("scope", None)
 					)
 					return refreshed
 			except Exception as err:
 				print(err.__dict__)
-				return_response = AuthEngineError(loc="AuthEngine.parse_response", **(err.__dict__), **response)
+				return_response = AuthEngineError(loc="AuthEngine.parse_response", **(err.__dict__), **response_dict)
 		# sign-up
-		elif "_id" in response:
-			return_response = AuthEngineResponse(loc="AuthEngine.parse_response", **response)
+		elif "_id" in response_dict:
+			return_response = AuthEngineResponse(loc="AuthEngine.parse_response", **response_dict)
 			return_response._bool = True
 		# error
-		elif "error" in response:
-			return_response = AuthEngineError(loc="AuthEngine.parse_response", **response)
+		elif "error" in response_dict:
+			return_response = AuthEngineError(loc="AuthEngine.parse_response", **response_dict)
 		else:
-			return_response = AuthEngineResponse(**response)
+			return_response = AuthEngineResponse(**response_dict)
 	return return_response
 
 @parse_response.register
@@ -138,7 +138,7 @@ def to_session(user: User) -> dict[str, Any]:
 		return data
 	return {}
 	
-def set_session(request: HttpRequest, user: AuthEngineResponse) -> None:
+def set_session(request: HttpRequest, response: AuthEngineResponse) -> None:
 	"""Sets authentication session data in the HttpRequest instance. The data
 	is received from to_session(). The modification in the HttpRequest
 	instance's session applies only if the new session data differs from the
@@ -147,12 +147,12 @@ def set_session(request: HttpRequest, user: AuthEngineResponse) -> None:
 	request (HttpRequest):
 		The HttpRequest instance to set the session cookie to.
 
-	user (AuthEngineResponse):
-		User object to acquire the data from.
+	response (AuthEngineResponse):
+		AuthEngineResponse to acquire the data from.
 	"""
-	if user and isinstance(user, User):
+	if response and isinstance(response, User):
 		existing_auth = request.session.get(cfg._SESSION_KEY)
-		new_auth = to_session(user)
+		new_auth = to_session(response)
 		# session is updated only if auth is updated to prevent unnecessary database access
 		if existing_auth != new_auth:
 			request.session[cfg._SESSION_KEY] = new_auth
@@ -162,8 +162,8 @@ def signin(
 	request: HttpRequest | None,
 	username: str,
 	password: str,
-	scope: str | None = None,
-	realm: str | None = None,
+	scope: str = cfg.Provider.Scopes.DEFAULT,
+	realm: str = cfg.Provider.USERNAME_PASSWORD_REALM,
 	audience: str | None = None,
 	keep_signed_in: bool = False
 ) -> AuthEngineResponse | User | None:
@@ -182,9 +182,10 @@ def signin(
 	password (str):
 		resource owner's Secret.
 
-	scope(str, optional):
+	scope (str, optional):
 		String value of the different scopes the client is asking for. Multiple
-		scopes are separated with whitespace.
+		scopes are separated with whitespace. The default value is
+		cfg.Provider.Scopes.DEFAULT.
 
 	realm (str, optional):
 		String value of the realm the user belongs. Set this if you want to add
@@ -199,11 +200,8 @@ def signin(
 		Whether or not to fetch refresh token for refreshing access token next
 		time.
 	"""
-	if not cfg._BOOL():
+	if not cfg._bool():
 		return
-		
-	scope = scope if scope else cfg.Provider.Scopes.DEFAULT
-	realm = realm if realm else cfg.Provider.USERNAME_PASSWORD_REALM
 
 	# if keep_signed_in is set add offline_access in scope
 	if keep_signed_in:
@@ -224,7 +222,7 @@ def signin(
 		body["audience"] = audience
 
 	try:
-		signin_request = Request.post(cfg.Provider.URL.Auth.token(), headers=PdefHeader.CONTENT_XWFU, body=body)
+		signin_request = Request.post(cfg.Provider.URL.Auth.token, headers=PdefHeader.CONTENT_XWFU, body=body)
 		response = parse_response(signin_request, request=request)
 	except Exception as err:
 		response = AuthEngineError(loc="AuthEngine.signin", **(err.__dict__))
@@ -258,7 +256,7 @@ def signin_code(
 	redirect_uri (str):
 		the url for which the code was intended for.
 	"""
-	if not cfg._BOOL():
+	if not cfg._bool():
 		return
 	
 	body = {
@@ -273,7 +271,7 @@ def signin_code(
 		body["redirect_uri"] = redirect_uri
 
 	try:
-		code_request = Request.post(cfg.Provider.URL.Auth.token(), headers=PdefHeader.CONTENT_XWFU, body=body)
+		code_request = Request.post(cfg.Provider.URL.Auth.token, headers=PdefHeader.CONTENT_XWFU, body=body)
 		response = parse_response(code_request, request=request)
 	except Exception as err:
 		response = AuthEngineError(loc="AuthEngine.signin_code", **(err.__dict__))
@@ -288,7 +286,7 @@ def signup(
 	email: str,
 	password: str,
 	username: str | None = None,
-	connection: str | None = None,
+	connection: str = cfg.Provider.USERNAME_PASSWORD_REALM,
 	user_metadata: dict[str, Any] | None = None,
 	given_name: str | None = None,
 	family_name: str | None = None,
@@ -344,11 +342,8 @@ def signup(
 		Whether or not to fetch refresh token for refreshing access token next
 		time.
 	"""
-	if not cfg._BOOL():
+	if not cfg._bool():
 		return
-	
-	if not connection:
-		connection = cfg.Provider.USERNAME_PASSWORD_REALM
 
 	body = {
 		"client_id": cfg._AUTH0_CLIENT_ID,
@@ -374,7 +369,7 @@ def signup(
 		body["user_metadata"] = user_metadata # type: ignore
 
 	try:
-		signup_request = Request.post(cfg.Provider.URL.Auth.dbcon_signup(), headers=PdefHeader.CONTENT_JSON, body=body)
+		signup_request = Request.post(cfg.Provider.URL.Auth.dbcon_signup, headers=PdefHeader.CONTENT_JSON, body=body)
 		response = parse_response(signup_request, request=request)
 	except Exception as err:
 		response = AuthEngineError(loc="AuthEngine.signup", **(err.__dict__))
@@ -390,7 +385,11 @@ def signup(
 
 	return response
 
-def change_password(email: str, connection: str, organization:str | None = None) -> AuthEngineResponse | None:
+def change_password(
+	email: str,
+	connection: str = cfg.Provider.USERNAME_PASSWORD_REALM,
+	organization:str | None = None
+) -> AuthEngineResponse | None:
 	"""Sends a password change email to the email address if a user with that
 	email exists. 
 
@@ -401,7 +400,7 @@ def change_password(email: str, connection: str, organization:str | None = None)
 		The name of the database connection where the user was created. By
 		default it uses the "Username-Password-Authentication" connection.
 	"""
-	if not cfg._BOOL():
+	if not cfg._bool():
 		return
 
 	if not connection:
@@ -418,7 +417,7 @@ def change_password(email: str, connection: str, organization:str | None = None)
 		body["organization"] = organization
 
 	try:
-		change_request = Request.post(cfg.Provider.URL.Auth.dbcon_change_password(), headers=PdefHeader.CONTENT_JSON, body=body)
+		change_request = Request.post(cfg.Provider.URL.Auth.dbcon_change_password, headers=PdefHeader.CONTENT_JSON, body=body)
 		response = parse_response(change_request, None)
 	except Exception as err:
 		response = AuthEngineError(loc="AuthEngine.change_password", **(err.__dict__))
@@ -428,7 +427,7 @@ def change_password(email: str, connection: str, organization:str | None = None)
 def refresh_access_token(
 		request:HttpRequest | None,
 		refresh_token:str,
-		scope: str | None = None
+		scope: str = cfg.Provider.Scopes.DEFAULT
 	) -> AuthEngineResponse:
 	"""Refreshes an access token using the provided refresh_token.
 	 
@@ -442,12 +441,11 @@ def refresh_access_token(
 
 	scope (str):
 		Used to limit the scopes of the new access token. Multiple scopes are
-		separated with whitespace.
+		separated with whitespace. The default value is
+		cfg.Provider.Scopes.DEFAULT.
 	"""
-	if not cfg._BOOL():
+	if not cfg._bool():
 		return # type: ignore
-	
-	scope = scope if scope else cfg.Provider.Scopes.DEFAULT
 
 	body = {
 		"grant_type": cfg.Provider.Grant.refresh_token,
@@ -458,7 +456,7 @@ def refresh_access_token(
 	}
 
 	try:
-		refresh_request = Request.post(cfg.Provider.URL.Auth.token(), headers=PdefHeader.CONTENT_XWFU, body=body)
+		refresh_request = Request.post(cfg.Provider.URL.Auth.token, headers=PdefHeader.CONTENT_XWFU, body=body)
 		response = parse_response(refresh_request, request=request)
 		# if successfully refreshed token set _token_refreshed flag
 		if response and response:
@@ -480,7 +478,7 @@ def authenticate(request: HttpRequest) -> AuthEngineResponse | None:
 	request (HttpRequest):
 		Django HttpRequest.
 	"""
-	if not cfg._BOOL():
+	if not cfg._bool():
 		return
 	auth_session:dict = request.session.get(cfg._SESSION_KEY) # type: ignore
 	response = parse_response(auth_session, request=request)
@@ -497,7 +495,7 @@ def authenticate_header(request: HttpRequest) -> AuthEngineResponse | None:
 	request (HttpRequest):
 		Django HttpRequest.
 	"""
-	if not cfg._BOOL():
+	if not cfg._bool():
 		return
 	authorization = request.headers.get("Authorization", "")
 	splited_authorization = authorization.split()
@@ -518,7 +516,7 @@ def get_user(request:HttpRequest | None, access_token: str | None) -> AuthEngine
 	access_token (str):
 		access_token.
 	"""
-	if not cfg._BOOL():
+	if not cfg._bool():
 		return
 	response = None
 
@@ -528,7 +526,7 @@ def get_user(request:HttpRequest | None, access_token: str | None) -> AuthEngine
 
 	if access_token:
 		try:
-			userinfo_request = Request.get(cfg.Provider.URL.Auth.userinfo(), headers=headers)
+			userinfo_request = Request.get(cfg.Provider.URL.Auth.userinfo, headers=headers)
 			json = userinfo_request.json
 			if json and "sub" in json:
 				response = User(**json)
