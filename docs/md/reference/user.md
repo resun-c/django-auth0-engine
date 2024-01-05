@@ -1,119 +1,164 @@
-# __dict_diff__(new, old)
-This function returns a dictionary containing the differences between two
-dictionaries. It identifies key-value pairs present in new but not in old,
-as well as key-value pairs in old with different values in new.
+Support to access and manage users.
 
-# _class_ User(**kwarg)
-The `User` class represents a user registered with the Auth0 application. It
-is constructed using information returned by successful authentication
-operations performed by the AuthEngine. The `User` object offers various
-functionalities, including updating information on the Auth0 server and
-providing direct access to database records through a custom backend. All
-the Open ID Claims are available as property.
+### __\_dict_diff__(new, old)
+Helper function to compare two dict and get the difference between old
+and new.
 
-#### Args:
+## _class_ __User__(**kwarg)
+Class to access and manage a user. Each instance represents a registered
+user and is constructed from information returned by successful
+authentication.
 
-	**kwarg: keyword arguments of user's information
-
-Along with that here are some object specific properties:
+### **kwarg
+keyword argument containing information of the user.
 
 ### UPDATABLE_ATTRIBUTES
 A list of keys for user attributes that can be updated in the Auth0
 server through the Management API.
-
-### property User.id
-The user's unique ID ("sub", according to the OIDC terminology).
-
-### property User.db
-This property invokes the the configured USER_DB_BACKEND with a
-reference to itself as the first argument and returns the database
-record returned by USER_DB_BACKEND
-		
-See user_object documentation for details.
-
-These are the methods available in a user object:
-
-### User.__bool__()
-This method checks the sub, the access token, and the ID token to
-determine if the user object represents a valid user. If the object
-represents a valid user, it returns `True`; `False` otherwise. If an
-attribute with the name error exists in the object, it creates an
-AuthEngineError object with the error information, sets the error
-attribute to this object, and returns `False`.
-
-### User.__eq__(__user: object)
-This method compares the current user object with another user object
-to determine if they represent the same user.
-
-#### Args:
-
-	__user (User): `User` to compare with.
-
-#### Returns:
-	True if __user is same; `False` otherwise.
-
-### User.set_db_backend(_db_backend)
-This method allows setting a different database backend for a `User`
-object. It is particularly useful when working with multiple user
-databases. If the user record is not found in the default user database
-backend, set the desired user database backend using this method before
-accessing the `User.db` property. This method assigns the _db_backend
-parameter as the database backend to the `User` object. Once the desired
-user database backend is set, accessing the `User.db` property will
-trigger the assigned backend to look up the user record.
-
-#### Args:
-
-	_db_backend (Any): `User` Database Backend to set.
 	
-### User.valid_user_key(key)
-This method checks whether a provided key is a valid user attribute key
+### blocked
+Whether this user was blocked by an administrator (true) or not
+(false).
+
+### email_verified
+Whether this email address is verified (true) or unverified
+(false). If set to false the user will not receive a verification
+email unless verify_email is set to true.
+
+### email
+Email address of this user.
+
+### phone_number
+The user's phone number (following the E.164 recommendation), only
+valid for users from SMS connections.
+
+### phone_verified
+Whether this phone number has been verified (true) or not (false).
+
+### user_metadata
+User metadata to which this user has read/write access.
+
+### app_metadata
+User metadata to which this user has read-only access.
+
+### given_name
+length: 1 <= length <= 150
+
+Given name/first name/forename of this user.
+
+### family_name
+length: 1 <= length <= 150
+
+Family name/last name/surname of this user.
+
+### name
+length: 1 <= length <= 300
+Name of this user.
+
+### nickname
+length: 1 <= length <= 300
+
+Preferred nickname or alias of this user.
+
+### picture
+format:strict-uri
+
+URL to picture, photo, or avatar of this user.
+
+### verify_email
+Whether this user will receive a verification email after creation
+(true) or no email (false). Overrides behavior of email_verified
+parameter.
+
+### verify_phone_number
+Whether this user will receive a text after changing the phone
+number (true) or no text (false). Only valid when changing phone
+number.
+
+### password
+length: 1 <= length
+
+New password for this user (mandatory for non-SMS connections).
+
+### connection
+length: 1 <= length
+
+Name of the connection to target for this user update.
+
+### client_id
+length: 1 <= length
+
+Auth0 client ID. Only valid when updating email address.
+
+### username
+length: 1 <= length <= 128
+
+The user's username. Only valid if the connection requires a
+username.
+
+### User.__\_\_bool\_\___()
+Returns true if a `sub`, an `access token`, and an `ID token` exist in an
+instance. The existence of those properties indicates a registered
+user.
+
+### User.__\_\_eq\_\___(\_\_user)
+This method compares the current user instance with another user
+instance to determine if they represent the same user.
+
+### __user
+User to compare with.
+
+### _property_ User.__id__
+Returns the unique ID of the user (`"sub"`, in the OIDC terminology).
+
+### _property_ User.__db__
+Retrieves and returns the user's database record by invoking the
+specified database backend.
+
+By default, `USER_DB_BACKEND` is used as the database backend.
+		
+See the [user_class](user_class.md) documentation for details.
+	
+### User.__set_db_backend__(_db_backend)
+Sets a database backend for a User instance.
+
+By default, the `USER_DB_BACKEND` is used to retrieve the database record
+of a User. This method sets a different database backend for a User
+instance.
+
+#### _db_backend
+User Database Backend to set.
+		
+	
+### User.__valid_user_key__(key)
+Returns whether or not the key is a valid user attribute key
 recognized by the Auth0 Management API.
 
-#### Args:
-
-    key (str): key to check.
+#### key
+key to check.
 		
-#### Returns:
 
-	`True` if key is valid; `False` otherwise.
+### User.__validate_user_dict__(data)
+Validates a dict of user data against the list of valid user
+attribute keys. If any invalid key is present, an AuthEngineError
+exception is raised.
 
-### User.validate_user_dict(data)
-This method validates a provided dictionary of user data against the
-list of valid user attribute keys. 
+#### data
+dict of user data to validate
 
-#### Args:
+### User.__to_dict__()
+Returns a dict consisting of the Auth0 Management API-specific user
+attributes.
 
-	data (dict): dictionary of user data to validate
+### User.__changed_user_data__()
+Returns a dict containing the user attributes that have been changed
+since the instance creation or last update.
 
-#### Raises:
+### User.__update__(data = None)
+Updates user attributes on the Auth0 server. It validates the
+provided data before updating. If no data is provided, it automatically
+detects which fields have been changed and updates only those fields.
+Returns an AuthEngineError instance if unable to update.
 
-	If any invalid key is present, it raises an `AuthEngineError`
-	exception.
-
-### User.to_dict()
-This method returns a dictionary representation of the user data,
-ensuring it contains only valid keys that can be sent for update to the
-Management API.
-
-### User.changed_user_data()
-This method returns a dictionary containing only the user data that has
-been changed since the object's creation or last update.
-
-### User.update(self, [data])
-This method updates the user's data on the Auth0 server. The method
-validates the provided data before updating. If no data is provided,
-it automatically detects which fields have been changed using the
-`User.changed_user_data()` method. Only the changed fields are sent for
-updating to the server.
-
-#### Args:
-
-	data (dict): dictionary containing the attributes to be updated.
-
-#### Returns:
-
-	If the update is successful, the user object is updated with the
-	new data and the method returns `True`. If any errors occur, it
-	returns the error. If there is no data to update, it simply returns
-	`True`.
+#### data
+dict containing the attributes to be updated.
