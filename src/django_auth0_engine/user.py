@@ -1,4 +1,4 @@
-"""Support to access and manage User.
+"""Support to access and manage users.
 """
 
 from typing import Any
@@ -11,7 +11,7 @@ from .exceptions import AuthEngineError
 from .response import AuthEngineResponse
 
 def _dict_diff(new:dict[str, Any], old:dict[str, Any]) -> dict[str, Any]:
-	"""Healper function to compare two dict and get the difference between old
+	"""Helper function to compare two dict and get the difference between old
 	and new.
 	"""
 	diff = {}
@@ -32,7 +32,7 @@ def _dict_diff(new:dict[str, Any], old:dict[str, Any]) -> dict[str, Any]:
 	return diff
 
 class User(OIDCClaimsStruct, AuthEngineResponse):
-	"""Class to access and manage user. Each instance represents a registered
+	"""Class to access and manage a user. Each instance represents a registered
 	user and is constructed from information returned by successful
 	authentication.
 
@@ -42,42 +42,49 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 
 	# A list of keys for user attributes that can be updated in the Auth0
 	# server through the Management API.
-	UPDATABLE_ATTRIBUTES = [
-		"app_metadata",
-		"blocked",
-		"email",
-		"email_verified",
-		"family_name",
-		"given_name",
-		"name",
-		"nickname",
-		"password",
-		"phone_number",
-		"phone_verified",
-		"picture",
-		"username",
-		"user_metadata",
-		"verify_email"
-	]
+	UPDATABLE_ATTRIBUTES = {
+		"blocked":				{"type": bool},
+		"email_verified":		{"type": bool},
+		"email":				{"type": str},
+		"phone_number":			{"type": str},
+		"phone_verified":		{"type": bool},
+		"user_metadata":		{"type": dict},
+		"app_metadata":			{"type": dict},
+		"given_name":			{"type": str,	"length":	lambda s: len(s) >= 1 and len(s) <= 150},
+		"family_name":			{"type": str,	"length":	lambda s: len(s) >= 1 and len(s) <= 150},
+		"name":					{"type": str,	"length":	lambda s: len(s) >= 1 and len(s) <= 300},
+		"nickname":				{"type": str,	"length":	lambda s: len(s) >= 1 and len(s) <= 300},
+		"picture":				{"type": str},
+		"verify_email":			{"type": bool},
+		"verify_phone_number":	{"type": bool},
+		"password":				{"type": str},
+		"connection":			{"type": str},
+		"client_id":			{"type": str},
+		"username":				{"type": str,	"length":	lambda s: len(s) >= 1 and len(s) <= 128},
+	}
 	
 	def __init__(self, **kwarg) -> None:
 		super().__init__()
 		AuthEngineResponse.__init__(self, **kwarg)
-		self.app_metadata				:dict
-		self.blocked					:str
+		self.blocked					:bool
+		self.email_verified				:bool
 		self.email						:str
-		self.email_verified				:str
-		self.family_name				:str
+		self.phone_number				:str
+		self.phone_verified				:bool
+		self.user_metadata				:dict
+		self.app_metadata				:dict
 		self.given_name					:str
+		self.family_name				:str
 		self.name						:str
 		self.nickname					:str
-		self.password					:str
-		self.phone_number				:str
-		self.phone_verified				:str
 		self.picture					:str
+		self.verify_email				:bool
+		self.verify_phone_number		:bool
+		self.password					:str
+		self.connection					:str
+		self.client_id					:str
 		self.username					:str
-		self.user_metadata				:dict
-		self.verify_email				:str
+
 		self._request					:HttpRequest | None		= None
 		self._db_backend				:Any | None				= cfg._USER_DB_BACKEND
 		self._db						:Any | None				= None
@@ -99,8 +106,8 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 		return self._bool
 
 	def __eq__(self, __user: object) -> bool:
-		"""This method compares the current user object with another user object
-		to determine if they represent the same user.
+		"""This method compares the current user instance with another user
+		instance to determine if they represent the same user.
 
 		__user (User):
 			User to compare with.
@@ -124,7 +131,7 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 
 		By default, USER_DB_BACKEND is used as the database backend.
 		
-		See user_object documentation for details.
+		See the user_class documentation for details.
 		"""
 		if not self._db and self._db_backend:
 			self._db = self._db_backend(self)
@@ -171,7 +178,7 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 				)
 
 	def to_dict(self) -> dict:
-		"""Returns a dict consisting of the Auth0 Management API specific user
+		"""Returns a dict consisting of the Auth0 Management API-specific user
 		attributes.
 		"""
 		data = {}
@@ -181,7 +188,7 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 		return data
 	
 	def changed_user_data(self):
-		"""Returns a dict containing the user attributes that has been changed
+		"""Returns a dict containing the user attributes that have been changed
 		since the instance creation or last update.
 		"""
 		return _dict_diff(self.to_dict(), self._initial_user_dict)

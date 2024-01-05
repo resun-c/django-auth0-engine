@@ -125,7 +125,7 @@ def to_session(user: User) -> dict[str, Any]:
 	from User instance.
 
 	response (User):
-		User object to acquire data from.
+		User instance to acquire data from.
 	"""
 	if user:
 		data = {
@@ -167,10 +167,10 @@ def signin(
 	audience: str | None = None,
 	keep_signed_in: bool = False
 ) -> AuthEngineResponse | User | None:
-	"""Signs in a user with username, password.
+	"""Signs in a user with username, and password.
 
 	Upon authentication, it sets the auth session in the request and
-	returns a User object. Otherwise, an AuthEngineError object with
+	returns a User instance. Otherwise, an AuthEngineError instance with
 	error information is returned; the request session is unchanged.
 
 	request (HttpRequest):
@@ -183,13 +183,13 @@ def signin(
 		resource owner's Secret.
 
 	scope (str, optional):
-		String value of the different scopes the client is asking for. Multiple
-		scopes are separated with whitespace. The default value is
+		The string value of the different scopes the application is asking for.
+		Multiple scopes are separated with whitespace. The default value is
 		cfg.Provider.Scopes.DEFAULT.
 
 	realm (str, optional):
-		String value of the realm the user belongs. Set this if you want to add
-		realm support at this grant.By default it uses the
+		The string value of the realm the user belongs to. Set this if you want
+		to add realm support at this grant. By default, it uses the
 		"Username-Password-Authentication" connection.
 
 	audience (str, optional):
@@ -197,8 +197,8 @@ def signin(
 		authentication purpose, it's the Auth0 application's client_id.
 
 	keep_signed_in (bool):
-		Whether or not to fetch refresh token for refreshing access token next
-		time.
+		Whether or not to fetch a refresh token for refreshing the access token
+		next time.
 	"""
 	if not cfg._bool():
 		return
@@ -244,7 +244,7 @@ def signin_code(
 	Active Directory), and others.
 
 	Upon parsing the response, it sets the auth session in the request and
-	returns a User object. Otherwise, an AuthEngineError object with error
+	returns a User instance. Otherwise, an AuthEngineError instance with error
 	information is returned; the request session is unchanged.
 
 	request (HttpRequest):
@@ -254,7 +254,7 @@ def signin_code(
 		authorization code grant provided by IdP
 
 	redirect_uri (str):
-		the url for which the code was intended for.
+		the URL for which the code was intended.
 	"""
 	if not cfg._bool():
 		return
@@ -296,11 +296,11 @@ def signup(
 	keep_signed_in: bool = False
 ) -> AuthEngineResponse | User | None:
 	"""Registers a user with Auth0 application using email address, password,
-	and additional informations.
+	and additional information.
 		
-	Upon successful registeration up, it sets the auth session in the request
-	and returns a User object. Otherwise, an AuthEngineError object with error
-	information is returned.
+	Upon successful registration, it sets the auth session in the request
+	and returns a User instance. Otherwise, an AuthEngineError instance with
+	error information is returned.
 
 	request (HttpRequest):
 		Django HttpRequest.
@@ -316,7 +316,7 @@ def signup(
 
 	connection (str, optional):
 		The name of the database connection where this user should be created.
-		By default it uses the "Username-Password-Authentication" connection.
+		By default, it uses the "Username-Password-Authentication" connection.
 
 	user_metadata (dict, optional):
 		Additional key-value information to store for the user. Some
@@ -339,8 +339,8 @@ def signup(
 		A URI pointing to the user's picture.
 
 	keep_signed_in (bool):
-		Whether or not to fetch refresh token for refreshing access token next
-		time.
+		Whether or not to fetch a refresh token for refreshing the access token
+		next time.
 	"""
 	if not cfg._bool():
 		return
@@ -398,7 +398,7 @@ def change_password(
 
 	connection (str):
 		The name of the database connection where the user was created. By
-		default it uses the "Username-Password-Authentication" connection.
+		default, it uses the "Username-Password-Authentication" connection.
 	"""
 	if not cfg._bool():
 		return
@@ -431,7 +431,7 @@ def refresh_access_token(
 	) -> AuthEngineResponse:
 	"""Refreshes an access token using the provided refresh_token.
 	 
-	Upon refreshment returns a User object; an AuthEngineError object with
+	Upon refreshment returns a User instance; an AuthEngineError instance with
 	error information is returned otherwise. It sets the _token_refreshed flag
 	in the response which is used by other functions to decide whether or not
 	to update the request session.
@@ -507,8 +507,8 @@ def authenticate_header(request: HttpRequest) -> AuthEngineResponse | None:
 	return response
 
 def get_user(request:HttpRequest | None, access_token: str | None) -> AuthEngineResponse | User | None:
-	"""Exchanges an access_token for a User object. Returns User if successful;
-	AuthEngineError otherwise.
+	"""Exchanges an access_token for a User instance. Returns User if
+	successful; AuthEngineError otherwise.
 
 	request (HttpRequest):
 		Django HttpRequest.

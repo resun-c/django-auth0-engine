@@ -3,8 +3,11 @@ import pprint
 from .response import AuthEngineResponse
 
 class AuthEngineError(Exception, AuthEngineResponse):
-	"""Custom exceptions that are used throughout this package.
+	"""A custom exception that is used throughout this package.
 
+	loc (str):
+		Where the exception occured.
+	
 	error (str, optional):
 		A string representing the name of the error.
 		

@@ -73,7 +73,7 @@ def _authorize_header(header):
 			header["Authorization"] = f"Bearer {token}"
 
 def update_user(id, body) -> AuthEngineResponse:
-	"""Updates the attributes of the user defined in body.
+	"""Updates the attributes of the user, defined in body.
 
 	Upon successful update, it returns an AuthEngineResponse instance
 	containing the updated attributes. Otherwise, an AuthEngineError instance

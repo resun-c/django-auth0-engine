@@ -3,7 +3,7 @@
 from typing import Any
 from .exceptions import AuthEngineError
 
-# String representing the name of the backend.
+# String representation of the name of the backend.
 BACKEND_NAME			: str	= "django_auth0_engine.engine.AuthEngine"
 
 # Constant variables that are fetched from settings.
@@ -12,9 +12,9 @@ _AUTH0_CLIENT_SECRET	:str	=	""
 _AUTH0_DOMAIN			:str	=	""
 _AUTH0_AUDIENCE			:str	=	""
 _DEFAULT_SCOPES			:str	=	""
-_AUTH0_ISSUER			:str	=	"https://{_AUTH0_DOMAIN}/"
-_AUTH0_JWKS_URL			:str	=	"https://{_AUTH0_DOMAIN}/.well-known/jwks.json"
-_MANAGEMENT_AUDIENCE	:str	=	"https://{_AUTH0_DOMAIN}/api/v2/"
+_AUTH0_ISSUER			:str	=	"https://{}/"
+_AUTH0_JWKS_URL			:str	=	"https://{}/.well-known/jwks.json"
+_MANAGEMENT_AUDIENCE	:str	=	"https://{}/api/v2/"
 
 # Database Backend class name for User.db
 _USER_DB_BACKEND		:Any	=   None
@@ -37,7 +37,7 @@ def _bool():
 	)
 	
 class Provider:
-	"""A class holding Provider specific informations."""
+	"""A class holding Provider specific information."""
 
 	# String representing the Username-Password-Authentication realm of auth0.
 	USERNAME_PASSWORD_REALM	: str	= "Username-Password-Authentication"
@@ -49,27 +49,27 @@ class Provider:
 		OPENID				: str	=	" openid "				# Scope for OpenID Information.
 		PROFILE				: str	=	" profile "				# Scope for Profile Information.
 		EMAIL				: str	=	" email "				# Scope for Email address.
-		# Scope used as default if no scopes are provided.
+		# Scopes that are used when AuthEngine functions are invoked without any scope.
 		DEFAULT				: str	=	OPENID + PROFILE + EMAIL
 
 	class URL:
-		"""A class holding Provider specific urls."""
+		"""A class holding provider-specific URLs."""
 
 		class Auth:
 			"""A class holding Auth endpoints."""
-			token					:str	=	"https://{_AUTH0_DOMAIN}/oauth/token"
-			dbcon_signup			:str	=	"https://{_AUTH0_DOMAIN}/dbconnections/signup"
-			dbcon_change_password	:str	=	"https://{_AUTH0_DOMAIN}/dbconnections/change_password"
-			userinfo				:str	=	"https://{_AUTH0_DOMAIN}/userinfo"
+			token					:str	=	"https://{}/oauth/token"
+			dbcon_signup			:str	=	"https://{}/dbconnections/signup"
+			dbcon_change_password	:str	=	"https://{}/dbconnections/change_password"
+			userinfo				:str	=	"https://{}/userinfo"
 			
 		class Management:
 			"""A class holding Management endpoints."""
 			
-			users_endpoint			:str	=	"https://{_AUTH0_DOMAIN}/api/v2/users/"
+			users_endpoint			:str	=	"https://{}/api/v2/users/"
 
 			@staticmethod
 			def user(id:str) -> str:
-				"""Returns a specific user's managment endpoint."""
+				"""Returns a specific user's management endpoint."""
 				return Provider.URL.Management.users_endpoint + id
 		
 	class Grant:

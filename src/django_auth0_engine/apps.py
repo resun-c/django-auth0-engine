@@ -10,7 +10,7 @@ class DjangoAuth0EngineConfig(AppConfig):
 	verbose_name = "Django Auth0 Engine"
 
 	def ready(self):
-		"""Fetches package specific constant values from settings. It looks
+		"""Fetches package-specific constant values from settings. It looks
 		for the following variables:
 
 	    	AUTH0_CLIENT_ID
@@ -26,8 +26,8 @@ class DjangoAuth0EngineConfig(AppConfig):
 	    		API audience
 
 	    	AUTH0_DEFAULT_SCOPES (optional)
-	    		String containing scopes that are used when requesting for
-	    		access_token.
+	    		Scopes that are used when AuthEngine functions are invoked
+				without any scope.
 
 			USER_DB_BACKEND (optional)
 				Database backend class used by User class.

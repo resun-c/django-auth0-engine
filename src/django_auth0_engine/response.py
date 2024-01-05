@@ -1,12 +1,12 @@
 import pprint
 
 class AuthEngineResponse():
-	"""A base class for various response returned by different functions of
+	"""A base class for various responses returned by different functions of
 	this package. It provides a standardized way to access response data and
 	check for successful operations.
 
 	**kwarg:
-		keyword argument containing information of the  response.
+		keyword argument containing information of the response.
 	"""
 	def __init__(self, **kwarg) -> None:
 		self.access_token		:str
@@ -31,7 +31,7 @@ class AuthEngineResponse():
 	
 	def __str__(self) -> str:
 		"""Returns a formatted string containing all the public [1] properties of the
-		response object. The formatting utilizes the pprint.pformat() method.
+		response instance. The formatting utilizes the pprint.pformat() method.
 		"""
 		return pprint.pformat(dict(self))
 	
@@ -44,7 +44,7 @@ class AuthEngineResponse():
 	
 	def __iter__(self):
 		"""This method returns an iterator object, enabling iteration through the
-		public [1] variables of the response object.
+		public [1] variables of the response instance.
 		"""
 		data = self.__dict__
 
@@ -53,7 +53,7 @@ class AuthEngineResponse():
 				yield (key, self._safe(data[key]))
 
 	def _safe(self, __value):
-		"""Returns an safe string of __value."""
+		"""Returns a safe string of __value."""
 		if isinstance(__value, bytes):
 			return __value.decode()
 		else:

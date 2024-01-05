@@ -22,7 +22,7 @@ class ContentType:
 	xwfu	=	"application/x-www-form-urlencoded"
 
 class Response:
-	"""Represents a HTTP Response."""
+	"""Represents an HTTP Response."""
 
 	def __init__(self, response:HTTPResponse) -> None:
 		self._response				= response
@@ -40,7 +40,7 @@ class Response:
 	
 	def __str__(self) -> str:
 		"""Returns a formatted string containing all the public [1] properties of the
-		response object. The formatting utilizes the pprint.pformat() method.
+		response instance. The formatting utilizes the pprint.pformat() method.
 		"""
 		return pprint.pformat(dict(self))
 	
@@ -53,7 +53,7 @@ class Response:
 	
 	def __iter__(self):
 		"""This method returns an iterator object, enabling iteration through the
-		public [1] variables of the response object.
+		public [1] variables of the response instance.
 		"""
 		data = self.__dict__
 
@@ -90,10 +90,11 @@ class Response:
 	
 	@property
 	def content(self) -> Any:
-		"""Returns the content in the format defined by "Content-Type" header.
+		"""Returns the content in the format defined by the "Content-Type"
+		header.
 
-		If Content-Type is JSON, the parsed JSON is returned. IF it's plain
-		text or html, the ASCII decoded string is returned.
+		If Content-Type is JSON, the parsed JSON is returned. If it's plain
+		text or HTML, the ASCII-decoded string is returned.
 		"""
 		match self.content_type:
 			case ContentType.json:
@@ -156,10 +157,10 @@ class Request:
 		return (con, curl)
 	
 	def make_body(self, headers:dict[str, str], body:Any):
-		"""Constructs suitable body for HTTP/HTTPS request based on the
-		content-type header. If content-type header is not present,
-		application/x-www-form-urlencoded is used as content type. Returns the
-		body.
+		"""Constructs an appropriate body for HTTP/HTTPS requests based on the
+		"Content-Type" header. If the "Content-Type" header is not present, the
+		content is formatted in URL encoding media type and the "Content-Type"
+		header is set to "application/x-www-form-urlencoded". Returns the body.
 		"""
 		if ContentType.label not in headers:
 			headers[ContentType.label] = ContentType.xwfu
@@ -176,7 +177,7 @@ class Request:
 				return body
 
 	def _get(self, url:str, headers:dict[str, str]={}) -> Response:
-		"""Makes a HTTP GET request and returns the response as a Response
+		"""Makes an HTTP GET request and returns the response as a Response
 		instance.
 		"""
 		con, curl = self.con_url(url)
@@ -185,7 +186,7 @@ class Request:
 		return Response(response)
 	
 	def _post(self, url:str, headers:dict[str, str]={}, body:Any=None) -> Response:
-		"""Makes a HTTP POST request and returns the response as a Response
+		"""Makes an HTTP POST request and returns the response as a Response
 		instance.
 		"""
 		con, curl = self.con_url(url)
@@ -199,7 +200,7 @@ class Request:
 		return Response(response)
 
 	def _patch(self, url:str, headers:dict[str, str]={}, body:Any=None) -> Response:
-		"""Makes a HTTP PATCH request and returns the response as a Response
+		"""Makes an HTTP PATCH request and returns the response as a Response
 		instance.
 		"""
 		con, curl = self.con_url(url)
