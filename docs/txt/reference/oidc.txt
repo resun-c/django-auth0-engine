@@ -1,4 +1,4 @@
-class OIDCClaimsStruct:
+class OIDCClaimsStruct
 	An object holding all the OIDC claims. Registered claims are taken from
 	https://datatracker.ietf.org/doc/html/rfc7519#section-4.1. Public claims
 	are taken from https://www.iana.org/assignments/jwt/jwt.xhtml#claims

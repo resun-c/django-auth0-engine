@@ -1,6 +1,13 @@
 class AuthEngineError()
-	Custom exceptions that are used throughout this package.
+class AuthEngineError(loc)
+class AuthEngineError(loc, error)
+class AuthEngineError(loc, error, description)
+class AuthEngineError(loc, error, description, /, **kwarg)
+	A custom exception that is used throughout this package.
 
+	loc
+		Where the exception occured.
+		
 	error
 		A string representing the name of the error.
 		

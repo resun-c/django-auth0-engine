@@ -19,7 +19,7 @@ _authorize_header(header)
 	Adds Authorization header to the header.
 
 update_user(id, body)
-	Updates the attributes of the user defined in body.
+	Updates the attributes of the user, defined in body.
 
 	Upon successful update, it returns an AuthEngineResponse instance
 	containing the updated attributes. Otherwise, an AuthEngineError instance

@@ -1,10 +1,10 @@
-class AuthEngineResponse():
-	A base class for various response returned by different functions of
+class AuthEngineResponse(**kwarg)
+	A base class for various responses returned by different functions of
 	this package. It provides a standardized way to access response data and
 	check for successful operations.
 
 	**kwarg
-		keyword argument containing information of the  response.
+		keyword argument containing information of the response.
 
 	__bool__()
 		Returns the value of the private [1] variable _bool. Various
@@ -13,7 +13,7 @@ class AuthEngineResponse():
 
 	__str__()
 		Returns a formatted string containing all the public [1] properties of the
-		response object. The formatting utilizes the pprint.pformat() method.
+		response instance. The formatting utilizes the pprint.pformat() method.
 
 	__repr__()
 		Returns a formatted string containing all properties, including both
@@ -22,10 +22,10 @@ class AuthEngineResponse():
 		
 	__iter__()
 		This method returns an iterator object, enabling iteration through the
-		public [1] variables of the response object.
+		public [1] variables of the response instance.
 
-	safe(__value)
-		Returns an safe string of __value.
+	_safe(__value)
+		Returns a safe string of __value.
 	
 
 	[1] Public and Private variables are defined here:

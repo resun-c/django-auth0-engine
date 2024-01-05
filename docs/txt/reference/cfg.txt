@@ -1,7 +1,7 @@
 A module to share information among other modules.
 
 BACKEND_NAME
-	String representing the name of the backend.
+	String representation of the name of the backend.
 
 Constant variables that are fetched from settings:
 
@@ -20,69 +20,79 @@ _USER_DB_BACKEND
 _SESSION_KEY
 	Key to access authentication session from request session.
 
-
-
 _bool()
 	Tells whether or not the engine is properly configured.
 
-
 class Provider
-	A class holding Provider specific informations.
+
+	A class holding Provider specific information.
 
 	USERNAME_PASSWORD_REALM
 		String representing the Username-Password-Authentication realm of
 		auth0.
 
-	class Scopes
-		OpenID Connect Scopes.
+class Provider.Scopes
 
-		REFRESH_TOKEN
-			Scope for refresh token.
+	OpenID Connect Scopes.
 
-		OPENID
-			Scope for OpenID Information.
+	REFRESH_TOKEN
+		Scope for refresh token.
 
-		PROFILE
-			Scope for Profile Information.
+	OPENID
+		Scope for OpenID Information.
+
+	PROFILE
+		Scope for Profile Information.
 		
-		EMAIL
-			Scope for Email address.
+	EMAIL
+		Scope for Email address.
 
-		DEFAULT
-			Scope used as default if no scopes are provided.
+	DEFAULT
+		Scopes that are used when AuthEngine functions are invoked without
+		any scope.
 
-	class URL
-		A class holding Provider specific urls.
+class Provider.URL
+	A class holding provider-specific URLs.
 
-		class Auth
-			A class holding Auth endpoints
+class Provider.URL.Auth
+	A class holding Auth endpoints
 
-			token
-				The token endpoint.
+	token
+		The token endpoint.
 			
-			dbcon_signup
-				dbconnections signup endpoint.
+	dbcon_signup
+		dbconnections signup endpoint.
 			
-			dbcon_change_password
-				dbconnections change password endpoint.
+	dbcon_change_password
+		dbconnections change password endpoint.
 			
-			userinfo
-				userinfo endpoint.
+	userinfo
+		userinfo endpoint.
 			
-		class Management
-			A class holding Management endpoints.
+class Provider.URL.Management
+	A class holding Management endpoints.
 			
-			users_endpoint
-				users endpoint.
+	users_endpoint
+		users endpoint.
 
-			staticmethod user(id)
-				Returns a specific user's managment endpoint.
+	staticmethod user(id)
+		Returns a specific user's management endpoint.
 		
-	class Grant
-		OAuth Grants.
+class Provider.Grant
+	OAuth Grants.
 
-		authorization_code = "authorization_code"
-		password = "password"
-		password_realm = "http://auth0.com/oauth/grant-type/password-realm"
-		client_credentials = "client_credentials"
-		refresh_token = "refresh_token"
+	authorization_code
+		Authorization Code grant.
+		
+	password
+		Password grant.
+		
+	password_realm
+		Password Realm grant.
+		"http://auth0.com/oauth/grant-type/password-realm"
+		
+	client_credentials
+		Client Credentials grant.
+		
+	refresh_token
+		Refresh Token grant.

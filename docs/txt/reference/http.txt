@@ -2,41 +2,41 @@ class PdefHeader
 	Some Predefined HTTP Headers.
 	
 	CONTENT_XWFU
-		{"content-type": "application/x-www-form-urlencoded"}
+		Header for URL Encoded Content-Type.
 	
 	CONTENT_JSON
-		{"content-type": "application/json"}
+		Header for JSON Content-Type.
 	
 	ACCEPT_JSON
-		{"Accept": "application/json"}
+		Header for JSON Accept.
 
 class ContentType
 	Some HTTP Content Types.
 
 	html
-		text/html
+		HTML Content Type
 	
 	plain
-		text/plain
+		Plain Text Content Type
 	
 	label
-		content-type
+		The header key for Content Type.
 	
 	json
-		application/json
+		JSON Content Type
 	
 	xwfu
-		application/x-www-form-urlencoded
+		URL Encoded Content Type
 
 class Response
-	Represents a HTTP Response.
+	Represents an HTTP Response.
 
 	__bool__()
 		Whether or not it's a successful response.
 	
 	__str__()
 		Returns a formatted string containing all the public [1] properties of the
-		response object. The formatting utilizes the pprint.pformat() method.
+		response instance. The formatting utilizes the pprint.pformat() method.
 	
 	__repr__()
 		Returns a formatted string containing all properties, including both
@@ -45,7 +45,7 @@ class Response
 	
 	__iter__()
 		This method returns an iterator object, enabling iteration through the
-		public [1] variables of the response object.
+		public [1] variables of the response instance.
 	
 
 	property content_type
@@ -61,10 +61,11 @@ class Response
 		Returns dict containing parsed json content.
 	
 	property content
-		Returns the content in the format defined by "Content-Type" header.
+		Returns the content in the format defined by the "Content-Type"
+		header.
 
-		If Content-Type is JSON, the parsed JSON is returned. IF it's plain
-		text or html, the ASCII decoded string is returned.
+		If Content-Type is JSON, the parsed JSON is returned. If it's plain
+		text or HTML, the ASCII-decoded string is returned.
 
 	property error
 		If any Error is encountered, it is returned as an AuthEngineError
@@ -84,28 +85,28 @@ class Request
 		instance and the URL to be used by that connection.
 	
 	make_body(headers, body)
-		Constructs suitable body for HTTP/HTTPS request based on the
-		content-type header. If content-type header is not present,
-		application/x-www-form-urlencoded is used as content type. Returns the
-		body.
+		Constructs an appropriate body for HTTP/HTTPS requests based on the
+		"Content-Type" header. If the "Content-Type" header is not present, the
+		content is formatted in URL encoding media type and the "Content-Type"
+		header is set to "application/x-www-form-urlencoded". Returns the body.
 
 	_get(url, headers = {})
-		Makes a HTTP GET request and returns the response as a Response
+		Makes an HTTP GET request and returns the response as a Response
 		instance.
 	
 	_post(url, headers = {}, body = None)
-		Makes a HTTP POST request and returns the response as a Response
+		Makes an HTTP POST request and returns the response as a Response
 		instance.
 
 	_patch(url, headers ={}, body = None)
-		Makes a HTTP PATCH request and returns the response as a Response
+		Makes an HTTP PATCH request and returns the response as a Response
 		instance.
 	
 	staticmethod get(url, headers = {})
-		An Alias staticmethod for _get that creates the Request itself.
+		An Alias staticmethod for Request._get that creates the Request itself.
 	
 	staticmethod post(url, headers = {}, body = None)
-		An Alias staticmethod for _post that creates the Request itself.
+		An Alias staticmethod for Request._post that creates the Request itself.
 	
 	staticmethod  patch(url, headers = {}, body = None)
-		An Alias staticmethod for _patch that creates the Request itself.
+		An Alias staticmethod for Request._patch that creates the Request itself.

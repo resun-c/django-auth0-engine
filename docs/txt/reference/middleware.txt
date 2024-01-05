@@ -1,4 +1,4 @@
-class SessionAuthMiddleware()
+class SessionAuthMiddleware
 	Authenticates a django.http.HttpRequest using the
 	AuthEngine.authenticate() function. It authenticates the request only if
 	the request doesn't already have a user property or if a
@@ -8,7 +8,7 @@ class SessionAuthMiddleware()
 	The returned value of AuthEngine.authenticate(), is assigned to
 	request.user as a SimpleLazyObject.
 
-class HeaderAuthMiddleware()
+class HeaderAuthMiddleware
 	This middleware functions similarly to SessionAuthMiddleware, except that it
 	employs the AuthEngine.authenticate_header() function to perform the
 	authentication.

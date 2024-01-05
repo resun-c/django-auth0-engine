@@ -38,7 +38,7 @@ to_session(user)
 	from User instance.
 
 	response
-		User object to acquire data from.
+		User instance to acquire data from.
 	
 set_session(request, response)
 	Sets authentication session data in the HttpRequest instance. The data
@@ -55,10 +55,10 @@ set_session(request, response)
 signin(request, username, password [, scope = cfg.Provider.Scopes.DEFAULT,
 	realm = cfg.Provider.USERNAME_PASSWORD_REALM, audience = None,
 	keep_signed_in = False])
-	Signs in a user with username, password.
+	Signs in a user with username, and password.
 
 	Upon authentication, it sets the auth session in the request and
-	returns a User object. Otherwise, an AuthEngineError object with
+	returns a User instance. Otherwise, an AuthEngineError instance with
 	error information is returned; the request session is unchanged.
 
 	request
@@ -71,13 +71,13 @@ signin(request, username, password [, scope = cfg.Provider.Scopes.DEFAULT,
 		resource owner's Secret.
 
 	scope
-		String value of the different scopes the client is asking for. Multiple
-		scopes are separated with whitespace.The default value is
+		The string value of the different scopes the application is asking for.
+		Multiple scopes are separated with whitespace. The default value is
 		cfg.Provider.Scopes.DEFAULT.
 
 	realm
-		String value of the realm the user belongs. Set this if you want to add
-		realm support at this grant.By default it uses the
+		The string value of the realm the user belongs to. Set this if you want to add
+		realm support at this grant. By default, it uses the
 		"Username-Password-Authentication" connection.
 
 	audience
@@ -85,8 +85,8 @@ signin(request, username, password [, scope = cfg.Provider.Scopes.DEFAULT,
 		authentication purpose, it's the Auth0 application's client_id.
 
 	keep_signed_in
-		Whether or not to fetch refresh token for refreshing access token next
-		time.
+		Whether or not to fetch a refresh token for refreshing the access token
+		next time.
 
 signin_code(request, code, redirect_uri)
 	Signs in a user using the authorization code grant received
@@ -95,7 +95,7 @@ signin_code(request, code, redirect_uri)
 	Active Directory), and others.
 
 	Upon parsing the response, it sets the auth session in the request and
-	returns a User object. Otherwise, an AuthEngineError object with error
+	returns a User instance. Otherwise, an AuthEngineError instance with error
 	information is returned; the request session is unchanged.
 
 	request
@@ -105,7 +105,7 @@ signin_code(request, code, redirect_uri)
 		authorization code grant provided by IdP
 
 	redirect_uri
-		the url for which the code was intended for.
+		the URL for which the code was intended.
 
 signup(request, email, password, username = None,
 	connection = cfg.Provider.USERNAME_PASSWORD_REALM, user_metadata = None,
@@ -113,11 +113,11 @@ signup(request, email, password, username = None,
 	picture = None, keep_signed_in = False)
 
 	Registers a user with Auth0 application using email address, password,
-	and additional informations.
+	and additional information.
 		
-	Upon successful registeration up, it sets the auth session in the request
-	and returns a User object. Otherwise, an AuthEngineError object with error
-	information is returned.
+	Upon successful registration, it sets the auth session in the request
+	and returns a User instance. Otherwise, an AuthEngineError instance with
+	error information is returned.
 
 	request
 		Django HttpRequest.
@@ -133,7 +133,7 @@ signup(request, email, password, username = None,
 
 	connection
 		The name of the database connection where this user should be created.
-		By default it uses the "Username-Password-Authentication" connection.
+		By default, it uses the "Username-Password-Authentication" connection.
 
 	user_metadata
 		Additional key-value information to store for the user. Some
@@ -156,8 +156,8 @@ signup(request, email, password, username = None,
 		A URI pointing to the user's picture.
 
 	keep_signed_in
-		Whether or not to fetch refresh token for refreshing access token next
-		time.
+		Whether or not to fetch a refresh token for refreshing the access token
+		next time.
 
 change_password(email, connection = cfg.Provider.USERNAME_PASSWORD_REALM,
 	organization = None)
@@ -170,13 +170,13 @@ change_password(email, connection = cfg.Provider.USERNAME_PASSWORD_REALM,
 
 	connection
 		The name of the database connection where the user was created. By
-		default it uses the "Username-Password-Authentication" connection.
+		default, it uses the "Username-Password-Authentication" connection.
 
 refresh_access_token(request, refresh_token,
 	scope = cfg.Provider.Scopes.DEFAULT)
 	Refreshes an access token using the provided refresh_token.
 	 
-	Upon refreshment returns a User object; an AuthEngineError object with
+	Upon refreshment returns a User instance; an AuthEngineError instance with
 	error information is returned otherwise. It sets the _token_refreshed flag
 	in the response which is used by other functions to decide whether or not
 	to update the request session.
@@ -209,11 +209,11 @@ authenticate_header(request)
 		Django HttpRequest.
 
 get_user(request, access_token)
-	Exchanges an access_token for a User object. Returns User if successful;
+	Exchanges an access_token for a User instance. Returns User if successful;
 	AuthEngineError otherwise.
 
 	request
 		Django HttpRequest.
 		
 	access_token
-		access_token.
+		The access token.

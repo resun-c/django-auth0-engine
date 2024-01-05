@@ -1,20 +1,92 @@
-Support to access and manage User.
+Support to access and manage users.
 
 _dict_diff(new, old)
-	Healper function to compare two dict and get the difference between old
+	Helper function to compare two dict and get the difference between old
 	and new.
 
-class User()
-	Class to access and manage user. Each instance represents a registered
+class User(**kwarg)
+	Class to access and manage a user. Each instance represents a registered
 	user and is constructed from information returned by successful
 	authentication.
-
+	
 	**kwarg
-		keyword arguments of user's information
+		keyword argument containing information of the user.
 
 	UPDATABLE_ATTRIBUTES
 		A list of keys for user attributes that can be updated in the Auth0
 		server through the Management API.
+	
+	blocked
+		Whether this user was blocked by an administrator (true) or not
+		(false).
+
+	email_verified
+		Whether this email address is verified (true) or unverified
+		(false). If set to false the user will not receive a verification
+		email unless verify_email is set to true.
+
+	email
+		Email address of this user.
+
+	phone_number
+		The user's phone number (following the E.164 recommendation), only
+		valid for users from SMS connections.
+
+	phone_verified
+		Whether this phone number has been verified (true) or not (false).
+
+	user_metadata
+		User metadata to which this user has read/write access.
+
+	app_metadata
+		User metadata to which this user has read-only access.
+
+	given_name
+		length: 1 <= length <= 150
+		Given name/first name/forename of this user.
+
+	family_name
+		length: 1 <= length <= 150
+		Family name/last name/surname of this user.
+
+	name
+		length: 1 <= length <= 300
+		Name of this user.
+
+	nickname
+		length: 1 <= length <= 300
+		Preferred nickname or alias of this user.
+
+	picture
+		format:strict-uri
+		URL to picture, photo, or avatar of this user.
+
+	verify_email
+		Whether this user will receive a verification email after creation
+		(true) or no email (false). Overrides behavior of email_verified
+		parameter.
+
+	verify_phone_number
+		Whether this user will receive a text after changing the phone
+		number (true) or no text (false). Only valid when changing phone
+		number.
+
+	password
+		length: 1 <= length
+		New password for this user (mandatory for non-SMS connections).
+
+	connection
+		length: 1 <= length
+		Name of the connection to target for this user update.
+
+	client_id
+		length: 1 <= length
+		Auth0 client ID. Only valid when updating email address.
+
+	username
+		length: 1 <= length <= 128
+		The user's username. Only valid if the connection requires a
+		username.
 
 	__bool__()
 		Returns true if a sub, an access token, and an ID token exist in an
@@ -22,8 +94,8 @@ class User()
 		user.
 
 	__eq__(__user)
-		This method compares the current user object with another user object
-		to determine if they represent the same user.
+		This method compares the current user instance with another user
+		instance to determine if they represent the same user.
 
 		__user
 			User to compare with.
@@ -37,7 +109,7 @@ class User()
 
 		By default, USER_DB_BACKEND is used as the database backend.
 		
-		See user_object documentation for details.
+		See the user_class documentation for details.
 	
 	set_db_backend(_db_backend)
 		Sets a database backend for a User instance.
@@ -67,11 +139,11 @@ class User()
 			dict of user data to validate
 
 	to_dict()
-		Returns a dict consisting of the Auth0 Management API specific user
+		Returns a dict consisting of the Auth0 Management API-specific user
 		attributes.
 	
 	changed_user_data()
-		Returns a dict containing the user attributes that has been changed
+		Returns a dict containing the user attributes that have been changed
 		since the instance creation or last update.
 
 	update(data = None)
