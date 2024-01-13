@@ -61,6 +61,10 @@ class Response:
 			if key[0] != '_':
 				yield (key, data[key])
 	
+	def __len__(self):
+		"""The length of the returned content."""
+		return int(self.headers.get("Content-Length", 0))
+	
 	@property
 	def content_type(self) -> str:
 		"""The content type of the response."""
@@ -69,7 +73,7 @@ class Response:
 	@property
 	def length(self) -> int:
 		"""The length of the returned content."""
-		return int(self.headers.get("Content-Length", 0))
+		return len(self)
 	
 	@property
 	def is_json(self) -> bool:
