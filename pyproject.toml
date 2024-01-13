@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "django_auth0_engine"
-version = "1.4"
+version = "1.5"
 authors = [
   { name="_resun", email="resun.saif@gmail.com" },
 ]
