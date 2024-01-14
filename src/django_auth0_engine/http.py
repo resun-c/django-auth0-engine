@@ -180,12 +180,12 @@ class Request:
 			case _:
 				return body
 
-	def _get(self, url:str, headers:dict[str, str]={}) -> Response:
+	def _get(self, url:str, headers:dict[str, str]={}, body:Any=None) -> Response:
 		"""Makes an HTTP GET request and returns the response as a Response
 		instance.
 		"""
 		con, curl = self.con_url(url)
-		con.request("GET", url=curl, headers=headers)
+		con.request("GET", url=curl, body=self.make_body(headers, body), headers=headers)
 		response = con.getresponse()
 		return Response(response)
 	
@@ -218,10 +218,10 @@ class Request:
 		return Response(response)
 	
 	@staticmethod
-	def get(url:str, headers:dict[str, str]={}) -> Response:
+	def get(url:str, headers:dict[str, str]={}, body:Any=None) -> Response:
 		"""An Alias staticmethod for _get that creates the Request itself."""
 		req = Request()
-		return req._get(url, headers)
+		return req._get(url, headers, body)
 	
 	@staticmethod
 	def post(url:str, headers:dict[str, str]={}, body:Any=None) -> Response:
