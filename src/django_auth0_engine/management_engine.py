@@ -72,6 +72,36 @@ def _authorize_header(header):
 	if "Authorization" not in header and (token := _access_token()):
 			header["Authorization"] = f"Bearer {token}"
 
+def get_user(id, body:dict = {}) -> AuthEngineResponse:
+	"""Get the attributes of the user, defined in body.
+
+	Returns an AuthEngineResponse instance containing the attributes.
+	Otherwise, an AuthEngineError instance is returned.
+	
+	id (str):
+		sub (a.k.a id) of the user whose attributes to get.
+
+	body (dict):
+		a dict containing the attributes to get.
+	"""
+	return_response:AuthEngineResponse = AuthEngineError(loc="ManagementEngine.update_user")
+
+	url = cfg.Provider.URL.Management.user(id)
+	headers = PdefHeader.CONTENT_JSON | PdefHeader.ACCEPT_JSON
+	_authorize_header(headers)
+	
+	try:
+		get_response = Request.get(url, headers=headers, body=body)
+		if get_response:
+			return_response = AuthEngineResponse(**get_response.json)
+			return_response._bool = True
+		else:
+			return_response = AuthEngineError(loc="ManagementEngine.update_user", **get_response.json)
+	except Exception as err:
+		print(err.__dict__)
+		return_response = AuthEngineError(loc="ManagementEngine.update_user", **err.__dict__)
+	return return_response
+
 def update_user(id, body) -> AuthEngineResponse:
 	"""Updates the attributes of the user, defined in body.
 
