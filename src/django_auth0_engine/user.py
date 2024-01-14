@@ -137,6 +137,12 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 			self._db = self._db_backend(self)
 		return self._db
 	
+	@staticmethod
+	def get(sub):
+		if response := ManagementEngine.get_user(sub):
+			return User(**response.__dict__)
+		return User()
+	
 	def set_db_backend(self, _db_backend:Any):
 		"""Sets a database backend for a User instance.
 
