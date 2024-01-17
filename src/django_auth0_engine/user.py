@@ -94,9 +94,9 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 		self.__dict__.update(**kwarg)
 		
 		# staticmethod get provides user_id not sub
-		if self.user_id and not self.sub:
+		if hasattr(self, "user_id") and not hasattr(self, "sub"):
 			self.sub = self.user_id
-			
+		
 		self._initial_user_dict = self.to_dict()
 
 		self.__bool__()
