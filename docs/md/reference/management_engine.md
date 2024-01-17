@@ -18,6 +18,18 @@ Returns True upon success; an AuthEngineError instance otherwise.
 ## __\_authorize_header__(header)
 Adds Authorization header to the header.
 
+## __get_user__(sub, body)
+Get the attributes of the user, defined in body.
+
+Upon success returns an AuthEngineResponse instance containing the
+attributes. Otherwise, an AuthEngineError instance is returned.
+	
+### sub (str):
+sub of the user whose attributes to get.
+
+### body (dict):
+a dict containing the attributes to get.
+        
 ## __update_user__(id, body)
 Updates the attributes of the user, defined in body.
 

@@ -17,16 +17,28 @@ _fetch_management_token()
 
 _authorize_header(header)
 	Adds Authorization header to the header.
+	
+get_user(sub, body)
+	Get the attributes of the user, defined in body.
 
-update_user(id, body)
+	Upon success returns an AuthEngineResponse instance containing the
+	attributes. Otherwise, an AuthEngineError instance is returned.
+	
+	sub (str):
+		sub of the user whose attributes to get.
+
+	body (dict):
+		a dict containing the attributes to get.
+	
+update_user(sub, body)
 	Updates the attributes of the user, defined in body.
 
 	Upon successful update, it returns an AuthEngineResponse instance
 	containing the updated attributes. Otherwise, an AuthEngineError instance
 	is returned.
 	
-	id
-		sub (a.k.a id) of the user whose attributes to update.
+	sub
+		sub of the user whose attributes to update.
 
 	body
 		a dict containing the attributes to update.

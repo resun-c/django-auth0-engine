@@ -72,21 +72,21 @@ def _authorize_header(header):
 	if "Authorization" not in header and (token := _access_token()):
 			header["Authorization"] = f"Bearer {token}"
 
-def get_user(id, body:dict = {}) -> AuthEngineResponse:
+def get_user(sub, body:dict = {}) -> AuthEngineResponse:
 	"""Get the attributes of the user, defined in body.
 
-	Returns an AuthEngineResponse instance containing the attributes.
-	Otherwise, an AuthEngineError instance is returned.
+	Upon success returns an AuthEngineResponse instance containing the
+	attributes. Otherwise, an AuthEngineError instance is returned.
 	
-	id (str):
-		sub (a.k.a id) of the user whose attributes to get.
+	sub (str):
+		sub of the user whose attributes to get.
 
 	body (dict):
 		a dict containing the attributes to get.
 	"""
 	return_response:AuthEngineResponse = AuthEngineError(loc="ManagementEngine.update_user")
 
-	url = cfg.Provider.URL.Management.user(id)
+	url = cfg.Provider.URL.Management.user(sub)
 	headers = PdefHeader.CONTENT_JSON | PdefHeader.ACCEPT_JSON
 	_authorize_header(headers)
 	
@@ -102,22 +102,22 @@ def get_user(id, body:dict = {}) -> AuthEngineResponse:
 		return_response = AuthEngineError(loc="ManagementEngine.update_user", **err.__dict__)
 	return return_response
 
-def update_user(id, body) -> AuthEngineResponse:
+def update_user(sub, body) -> AuthEngineResponse:
 	"""Updates the attributes of the user, defined in body.
 
 	Upon successful update, it returns an AuthEngineResponse instance
 	containing the updated attributes. Otherwise, an AuthEngineError instance
 	is returned.
 	
-	id (str):
-		sub (a.k.a id) of the user whose attributes to update.
+	sub (str):
+		sub of the user whose attributes to update.
 
 	body (dict):
 		a dict containing the attributes to update.
 	"""
 	return_response:AuthEngineResponse = AuthEngineError(loc="ManagementEngine.update_user")
 
-	url = cfg.Provider.URL.Management.user(id)
+	url = cfg.Provider.URL.Management.user(sub)
 	headers = PdefHeader.CONTENT_JSON | PdefHeader.ACCEPT_JSON
 	_authorize_header(headers)
 	
