@@ -111,6 +111,9 @@ User to compare with.
 ### _property_ User.__id__
 Returns the unique ID of the user (`"sub"`, in the OIDC terminology).
 
+### _staticmethod_ User.get(sub)
+Gets a user's information and constructs a `User` object.
+
 ### _property_ User.__db__
 Retrieves and returns the user's database record by invoking the
 specified database backend.

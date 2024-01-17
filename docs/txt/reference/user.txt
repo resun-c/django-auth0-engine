@@ -100,9 +100,9 @@ class User(**kwarg)
 		__user
 			User to compare with.
 
-	property id
-		Returns the unique ID of the user ("sub", in the OIDC terminology).
-
+	staticmethod get(sub)
+		Gets a user's information and constructs a User object.
+		
 	property db
 		Retrieves and returns the user's database record by invoking the
 		specified database backend.

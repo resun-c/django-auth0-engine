@@ -84,6 +84,7 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 		self.connection					:str
 		self.client_id					:str
 		self.username					:str
+		self.user_id					:str
 
 		self._request					:HttpRequest | None		= None
 		self._db_backend				:Any | None				= cfg._USER_DB_BACKEND
@@ -91,6 +92,11 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 		self._initial_user_dict			:dict					= {}
 
 		self.__dict__.update(**kwarg)
+		
+		# staticmethod get provides user_id not sub
+		if self.user_id and not self.sub:
+			self.sub = self.user_id
+			
 		self._initial_user_dict = self.to_dict()
 
 		self.__bool__()
@@ -115,14 +121,6 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 		if isinstance(__user, User) and hasattr(__user, "sub"):
 			return self.sub == __user.sub
 		return False
-
-	@property
-	def id(self):
-		"""Returns the unique ID of the user ("sub", in the OIDC terminology).
-		"""
-		if self:
-			return self.sub
-		return None
 	
 	@property
 	def db(self):
@@ -139,8 +137,11 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 	
 	@staticmethod
 	def get(sub):
+		"""Gets a user's information and constructs a User object."""
 		if response := ManagementEngine.get_user(sub):
-			return User(**response.__dict__)
+			u = User(**response.__dict__)
+			u._bool = True					# set _bool manually as u doesn't have access_token and id_token
+			return 
 		return User()
 	
 	def set_db_backend(self, _db_backend:Any):
