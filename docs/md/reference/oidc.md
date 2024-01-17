@@ -338,11 +338,11 @@ JSON object whose member names are referenced by the member values of the _claim
 				
 These are the methods available in a user object:
 
-### OIDCClaimsStruct.__is_registered_claim__(key)
+### _staticmethod_ OIDCClaimsStruct.__is_registered_claim__(key)
 Determines whether or not key is a registered claim.
 
-### OIDCClaimsStruct.__is_public_claim__(key)
+### _staticmethod_ OIDCClaimsStruct.__is_public_claim__(key)
 Determines whether or not key is a public claim.
 
-### OIDCClaimsStruct.__is_claim__(key)
+### _staticmethod_ OIDCClaimsStruct.__is_claim__(key)
 Determines whether or not key is a OIDC claim.

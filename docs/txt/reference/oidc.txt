@@ -390,11 +390,11 @@ class OIDCClaimsStruct
 				
 	These are the methods available in a user object:
 
-	OIDCClaimsStruct.is_registered_claim(key)
+	staticmethod OIDCClaimsStruct.is_registered_claim(key)
 		Determines whether or not key is a registered claim.
 
-	OIDCClaimsStruct.is_public_claim(key)
+	staticmethod OIDCClaimsStruct.is_public_claim(key)
 		Determines whether or not key is a public claim.
 
-	OIDCClaimsStruct.is_claim(key)
+	staticmethod OIDCClaimsStruct.is_claim(key)
 		Determines whether or not key is a OIDC claim.
