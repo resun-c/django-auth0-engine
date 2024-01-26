@@ -1,6 +1,7 @@
 """Support to access and manage users.
 """
 
+from math import fabs
 from typing import Any
 from django.http import HttpRequest
 from . import cfg
@@ -64,27 +65,28 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 	}
 	
 	def __init__(self, **kwarg) -> None:
-		super().__init__()
-		AuthEngineResponse.__init__(self, **kwarg)
-		self.blocked					:bool
-		self.email_verified				:bool
-		self.email						:str
-		self.phone_number				:str
-		self.phone_verified				:bool
-		self.user_metadata				:dict
-		self.app_metadata				:dict
-		self.given_name					:str
-		self.family_name				:str
-		self.name						:str
-		self.nickname					:str
-		self.picture					:str
-		self.verify_email				:bool
-		self.verify_phone_number		:bool
-		self.password					:str
-		self.connection					:str
-		self.client_id					:str
-		self.username					:str
-		self.user_id					:str
+		self.blocked					:bool	=	False
+		self.email_verified				:bool	=	False
+		self.email						:str	=	None
+		self.phone_number				:str	=	None
+		self.phone_verified				:bool	=	False
+		self.user_metadata				:dict	=	{}
+		self.app_metadata				:dict	=	{}
+		self.given_name					:str	=	None
+		self.family_name				:str	=	None
+		self.name						:str	=	None
+		self.nickname					:str	=	None
+		self.picture					:str	=	None
+		self.verify_email				:bool	=	False
+		self.verify_phone_number		:bool	=	False
+		self.password					:str	=	None
+		self.connection					:str	=	None
+		self.client_id					:str	=	None
+		self.username					:str	=	None
+		self.user_id					:str	=	None
+		
+		# init AuthEngineResponse
+		super(OIDCClaimsStruct, self).__init__(**kwarg)
 
 		self._request					:HttpRequest | None		= None
 		self._db_backend				:Any | None				= cfg._USER_DB_BACKEND
@@ -106,7 +108,14 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 		instance. The existence of those properties indicates a registered
 		user.
 		"""
-		if self.sub and self.access_token and self.id_token:
+		if (			# for User initialized from openid informations
+				hasattr(self, "sub")
+				and hasattr(self, "access_token")
+	  			and hasattr(self, "id_token")
+			) or (		# for User initialized from management users endpoint
+				hasattr(self, "user_id")
+				and hasattr(self, "user_id")
+			):
 			self._bool = True
 		
 		return self._bool
@@ -141,7 +150,7 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 		if response := ManagementEngine.get_user(sub):
 			u = User(**response.__dict__)
 			u._bool = True					# set _bool manually as u doesn't have access_token and id_token
-			return 
+			return u
 		return User()
 	
 	def set_db_backend(self, _db_backend:Any):
