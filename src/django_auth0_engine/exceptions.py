@@ -2,7 +2,7 @@ from typing import overload
 import pprint
 from .response import AuthEngineResponse
 
-class AuthEngineError(Exception, AuthEngineResponse):
+class AuthEngineError(AuthEngineResponse, Exception):
 	"""A custom exception that is used throughout this package.
 
 	loc (str):
@@ -27,7 +27,7 @@ class AuthEngineError(Exception, AuthEngineResponse):
 	@overload
 	def __init__(self, loc:str, error:str, description:str) -> None:...
 	
-	def __init__(self, loc = None, error = None, description = None, /, **kwarg) -> None: # type: ignore
+	def __init__(self, loc = "Unknown", error = None, description = None, /, **kwarg) -> None: # type: ignore
 		self.loc			:str | None				= loc
 		self.error			:str | None				= error
 		self.description	:str | None				= description
@@ -43,9 +43,11 @@ class AuthEngineError(Exception, AuthEngineResponse):
 		if not self.description:
 			self.description = "Unavailable"
 
-		self.__dict__.update(**kwarg)
-		AuthEngineResponse.__init__(self)
-		Exception.__init__(self, self.__repr__())
+		# init AuthEngineResponse
+		super().__init__(**kwarg)
+		
+		# init Exception
+		super(AuthEngineResponse, self).__init__(self.__repr__())
 		
 		if self.description:
 			self.add_note(self.description)
@@ -65,10 +67,10 @@ class AuthEngineError(Exception, AuthEngineResponse):
 	
 	def __repr__(self) -> str:
 		"""Returns a string summarizing the error in the format
-		"error: description/message".
+		"error: description/message. at: loc".
 		"""
 		description = self.description or self.message
-		return f"{self.error}: {description}"
+		return f"{self.error}: {description}. at: {self.loc}"
 	
 	def __bool__(self) -> bool:
 		"""Always returns False."""
