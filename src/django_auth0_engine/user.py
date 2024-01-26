@@ -10,6 +10,7 @@ from . import management_engine as ManagementEngine
 from .oidc import OIDCClaimsStruct
 from .exceptions import AuthEngineError
 from .response import AuthEngineResponse
+import copy
 
 def _dict_diff(new:dict[str, Any], old:dict[str, Any]) -> dict[str, Any]:
 	"""Helper function to compare two dict and get the difference between old
@@ -65,25 +66,25 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 	}
 	
 	def __init__(self, **kwarg) -> None:
-		self.blocked					:bool	=	False
-		self.email_verified				:bool	=	False
-		self.email						:str	=	None
-		self.phone_number				:str	=	None
-		self.phone_verified				:bool	=	False
-		self.user_metadata				:dict	=	{}
-		self.app_metadata				:dict	=	{}
-		self.given_name					:str	=	None
-		self.family_name				:str	=	None
-		self.name						:str	=	None
-		self.nickname					:str	=	None
-		self.picture					:str	=	None
-		self.verify_email				:bool	=	False
-		self.verify_phone_number		:bool	=	False
-		self.password					:str	=	None
-		self.connection					:str	=	None
-		self.client_id					:str	=	None
-		self.username					:str	=	None
-		self.user_id					:str	=	None
+		self.blocked					:bool			=	False
+		self.email_verified				:bool			=	False
+		self.email						:str | None		=	None
+		self.phone_number				:str | None		=	None
+		self.phone_verified				:bool			=	False
+		self.user_metadata				:dict			=	{}
+		self.app_metadata				:dict			=	{}
+		self.given_name					:str | None		=	None
+		self.family_name				:str | None		=	None
+		self.name						:str | None		=	None
+		self.nickname					:str | None		=	None
+		self.picture					:str | None		=	None
+		self.verify_email				:bool			=	False
+		self.verify_phone_number		:bool			=	False
+		self.password					:str | None		=	None
+		self.connection					:str | None		=	None
+		self.client_id					:str | None		=	None
+		self.username					:str | None		=	None
+		self.user_id					:str | None		=	None
 		
 		# init AuthEngineResponse
 		super(OIDCClaimsStruct, self).__init__(**kwarg)
@@ -200,7 +201,7 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 		data = {}
 		for key in self.__dict__:
 			if self.valid_user_key(key):
-				data[key] = self.__dict__[key]
+				data[key] = copy.deepcopy(self.__dict__[key])
 		return data
 	
 	def changed_user_data(self):
