@@ -146,17 +146,20 @@ class Request:
 		else:
 			con = HTTPSConnection(purl.netloc)
 
+		curl = ""
+		
 		# construct the url
-		if purl.path and purl.params and purl.query and purl.fragment:
-			curl = f"{purl.path};{purl.params}?{purl.query}#{purl.fragment}"
-		elif purl.path and purl.params and purl.query:
-			curl = f"{purl.path};{purl.params}?{purl.query}"
-		elif purl.path and purl.params:
-			curl = f"{purl.path};{purl.params}"
-		elif purl.path:
-			curl = f"{purl.path}"
-		else:
-			curl = ""
+		if purl.path:
+			curl += purl.path
+		
+		if purl.params:
+			curl += f";{purl.params}"
+			
+		if purl.query:
+			curl += f"?{purl.query}"
+			
+		if purl.fragment:
+			curl += f"#{purl.fragment}"
 		
 		return (con, curl)
 	
