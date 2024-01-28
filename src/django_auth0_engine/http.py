@@ -4,6 +4,7 @@ import json
 from typing import Any
 from pprint import pprint
 from django_auth0_engine.exceptions import AuthEngineError
+from io import BytesIO, StringIO
 
 class PdefHeader:
 	"""Some Predefined HTTP Headers."""
@@ -109,7 +110,19 @@ class Response:
 				return str(self.raw_content.decode())
 			case _:
 				return str(self.raw_content.decode())
-
+	
+	@property
+	def as_file(self):
+		"""Returns a StringIO or BytesIO of the content"""
+		f = None
+		if self:
+			if isinstance(self.raw_content, str):
+				f = StringIO(self.raw_content)
+			else:
+				f = BytesIO(self.raw_content)
+		
+		return f
+	
 	@property
 	def error(self):
 		"""If any Error is encountered, it is returned as an AuthEngineError
@@ -120,8 +133,6 @@ class Response:
 				return AuthEngineError(**self.json)
 			else:
 				return AuthEngineError(loc = "Response", error = "Unknown", description = str(self.content))
-			
-	
 	
 	"""
 	[1] Public and Private variables are defined here:
