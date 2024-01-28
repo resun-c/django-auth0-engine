@@ -188,7 +188,10 @@ class Request:
 		instance.
 		"""
 		con, curl = self.con_url(url)
-		con.request("GET", url=curl, body=self.make_body(headers, body), headers=headers)
+		if body:
+			body = self.make_body(headers, body)
+			
+		con.request("GET", url=curl, body=body, headers=headers)
 		response = con.getresponse()
 		return Response(response)
 	
@@ -197,10 +200,13 @@ class Request:
 		instance.
 		"""
 		con, curl = self.con_url(url)
+		if body:
+			body = self.make_body(headers, body)
+			
 		con.request(
 			"POST",
 			url=curl,
-			body=self.make_body(headers, body),
+			body=body,
 			headers=headers
 		)
 		response = con.getresponse()
@@ -211,10 +217,13 @@ class Request:
 		instance.
 		"""
 		con, curl = self.con_url(url)
+		if body:
+			body = self.make_body(headers, body)
+			
 		con.request(
 			"PATCH",
 			url=curl,
-			body=self.make_body(headers, body),
+			body=body,
 			headers=headers
 		)
 		response = con.getresponse()
