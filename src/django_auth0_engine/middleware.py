@@ -1,6 +1,6 @@
 from . import cfg
 from . import auth_engine as AuthEngine
-from .response import AuthEngineResponse
+from .user import NoUser
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.functional import SimpleLazyObject
 
@@ -21,8 +21,7 @@ class SessionAuthMiddleware(MiddlewareMixin):
 			if hasattr(request, "session") and cfg._SESSION_KEY in request.session:
 				request.user = SimpleLazyObject(lambda: AuthEngine.authenticate(request))
 			else:
-				request.user = AuthEngineResponse(message="No user")
-				request.user._bool = False
+				request.user = NoUser("No user")
 
 class HeaderAuthMiddleware(MiddlewareMixin):
 	"""This middleware functions similarly to SessionAuthMiddleware, except that it
@@ -36,5 +35,4 @@ class HeaderAuthMiddleware(MiddlewareMixin):
 			if "Authorization" in request.headers:
 				request.user = SimpleLazyObject(lambda: AuthEngine.authenticate_header(request))
 			else:
-				request.user = AuthEngineResponse(message="No user")
-				request.user._bool = False
+				request.user = NoUser("No user")
