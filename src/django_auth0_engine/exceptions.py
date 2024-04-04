@@ -1,77 +1,110 @@
-from typing import overload
-import pprint
-from .response import AuthEngineResponse
+from .error import AuthEngineError
 
-class AuthEngineError(AuthEngineResponse, Exception):
-	"""A custom exception that is used throughout this package.
-
-	loc (str):
-		Where the exception occured.
+class AuthEngineExceptionBase(Exception):
+	"""Custom exception base class used by other exception classes.
 	
-	error (str, optional):
-		A string representing the name of the error.
+	error (str, AuthEngineError, optional):
+		str is treated as an one sentence string representation of the error.
+		if it's ab AuthEngineError then other attributes are acquired from it. 
+		
+	loc (str):
+		Where the exception occured. if self.loc already exists then loc is
+		prepended to that.
 		
 	description (str, optional):
 		A short explanation of the error.
-
-	**kwarg:
-		keyword argument containing additional information about the error.
-    """
-	
-	@overload
-	def __init__(self) -> None:...
-	@overload
-	def __init__(self, loc) -> None:...
-	@overload
-	def __init__(self, loc:str, error:str) -> None:...
-	@overload
-	def __init__(self, loc:str, error:str, description:str) -> None:...
-	
-	def __init__(self, loc = "Unknown", error = None, description = None, /, **kwarg) -> None: # type: ignore
-		self.loc			:str | None				= loc
-		self.error			:str | None				= error
-		self.description	:str | None				= description
-		self.message		:str | None				= None
-
-		if not self.error:
-			if "error_code" in kwarg:
-				self.error = kwarg.pop("error_code")
-			else:
-				self.error = "Unknown AuthEngineError"
-		error = f"{self.error} at {self.loc}"
-
-		if not self.description:
-			self.description = "Unavailable"
-
-		# init AuthEngineResponse
-		super().__init__(**kwarg)
 		
-		# init Exception
-		super(AuthEngineResponse, self).__init__(self.__repr__())
+	"""
+	def __init__(
+			self,
+			error:str | AuthEngineError = "",
+			loc:str = "",
+			description:str = "",
+		) -> None:
+		self.error			=	error
+		self.loc			=	loc
+		self.description	=	description
+		self.message		=	""
 		
-		if self.description:
-			self.add_note(self.description)
-		if self.message:
-			self.add_note(self.message)
-
-	def __str__(self) -> str:
-		"""Returns a formatted string containing all properties of the error. The
-		string is formatted using pprint.pformat().
-		"""
-		return_dict = {}
-		for key in self.__dict__:
-			if self.__dict__.get(key):
-				return_dict[key] = self.__dict__.get(key)
-
-		return pprint.pformat(return_dict)
-	
+		if isinstance(error, AuthEngineError):
+			self.error = error.error
+			self.description = error.description
+			if error.loc:
+				if loc:
+					self.loc = f"{loc} / {error.loc}"
+				else:
+					self.loc = {error.loc}
+			
+			if error.message:
+				self.message = error.message
+		
+		super().__init__(repr(self))
+		
+		if description:
+			self.add_note(description)
+			
 	def __repr__(self) -> str:
-		"""Returns a string summarizing the error in the format
-		"error: description/message. at: loc".
+		"""Returns a string summarizing the error in the format:
+		"error[ at loc]. description. message."
 		"""
-		description = self.description or self.message
-		return f"{self.error}: {description}. at: {self.loc}"
+		
+		# error
+		s = f"{self.error}"
+		
+		# loc
+		if self.loc:
+			s += f" at {self.loc}"
+		
+		# period ofter error[ exception][ loc]
+		s += "."
+		
+		# description
+		if self.description:
+			s += f" {self.description}{"." if self.description[-1] != "." else ""}"
+		
+		# message
+		if self.message:
+			s += f" {self.message}{"." if self.message[-1] != "." else ""}"
+		
+		return s
+
+class AuthEngineException(AuthEngineExceptionBase):
+	"""Custom exception that is used primarily by AuthEngine.
+	"""
+	class MisconfiguredEngine(AuthEngineExceptionBase):
+		def __init__(
+				self,
+				missing: str = "",
+			) -> None:
+			super().__init__(f"DjangoAuth0Engine is missing {missing}")
+		
+	class Unauthorized(AuthEngineExceptionBase):
+		def __init__(self) -> None:
+			super().__init__("Unauthorized Request!")
 	
-	def __bool__(self) -> bool:
-		"""Always returns False."""
-		return False
+class ManagementEngineException(AuthEngineExceptionBase):
+	"""Custom exception that is used by ManagementEngine.
+	"""
+	
+	class AccessTokenMissing(AuthEngineExceptionBase):
+		def __init__(
+			self,
+			loc:str,
+		) -> None:
+			super().__init__(
+				error = f"Access Token is missing",
+				loc=loc
+				)
+	
+	class NoAccessTokenReceived(AuthEngineExceptionBase):
+		def __init__(
+			self,
+			loc:str,
+			payload
+		) -> None:
+			super().__init__(
+				error = f"Couldn't fetch Access Token",
+				loc = loc,
+				description = str(payload)
+			)
+		
