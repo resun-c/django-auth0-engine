@@ -6,20 +6,20 @@ is used to store authentication-related session data for subsequent requests.
 The methods rely on a set of constants that are fetched from settings.py (see
 apps.py).
 """
-
-from . import cfg
-from .user import User
-from .exceptions import AuthEngineError
-from .response import AuthEngineResponse
-from .http import Request, Response, PdefHeader
+import jwt
+from jwt import PyJWKClient
 from typing import Any
 from django.http import HttpRequest
 from functools import singledispatch
-import jwt
-from jwt import PyJWKClient
-from pprint import pprint
 
-def verify_id_token(token:str):
+from . import cfg
+from .exceptions import *
+from .error import AuthEngineError
+from .response import AuthEngineResponse
+from .http import Request, Response, PdefHeader
+from .user import User, NoUser
+
+def verify_id_token(token: str) -> dict:
 	"""Validates a token and returns the payload. If the token is invalid, an
 	exception is raised.
 
@@ -38,13 +38,15 @@ def verify_id_token(token:str):
 			algorithms=[alg],
 			issuer=cfg._AUTH0_ISSUER,
 			audience=cfg._AUTH0_AUDIENCE)
+		return claims
 	except:
 		raise
 
-	return claims
-
 @singledispatch
-def parse_response(response_dict:dict[str, Any], request:HttpRequest) -> AuthEngineResponse:
+def _parse_response(
+		response_dict: dict[str, Any],
+		request: HttpRequest
+	) -> AuthEngineResponse | User | AuthEngineError:
 	"""Parses the response received from various Auth0 endpoints or
 	authentication session data and returns an instance of AuthEngineResponse
 	or its subclass.
@@ -63,12 +65,17 @@ def parse_response(response_dict:dict[str, Any], request:HttpRequest) -> AuthEng
 		typically response from Auth0 endpoints or auth session data from
 		request.
 	"""
+	
+	# check configuration
+	cfg._bool()
 
-	return_response:AuthEngineResponse = AuthEngineError(
-		loc="AuthEngine.parse_response"
+	return_response = AuthEngineError(
+		loc="AuthEngine._parse_response()",
+		error="Unknown"
 	)
 
-	if cfg._bool and response_dict:
+	if response_dict:
+		# response from token endpoint or auth session.
 		if "id_token" in response_dict:
 			# parse payload from id_token
 			try:
@@ -87,36 +94,40 @@ def parse_response(response_dict:dict[str, Any], request:HttpRequest) -> AuthEng
 						scope=response_dict.get("scope", None)
 					)
 					return refreshed
+				else:
+					return AuthEngineError(
+						error = "Expired Session!",
+						loc = "AuthEngine._parse_response()",
+						description = "The given token has been expired."
+					)
 			except Exception as err:
-				print(err.__dict__)
-				return_response = AuthEngineError(loc="AuthEngine.parse_response", **(err.__dict__), **response_dict)
+				return AuthEngineError(exception=err)
 		# sign-up
 		elif "_id" in response_dict:
-			return_response = AuthEngineResponse(loc="AuthEngine.parse_response", **response_dict)
-			return_response._bool = True
+			return_response = AuthEngineResponse(**response_dict)
 		# error
 		elif "error" in response_dict:
-			return_response = AuthEngineError(loc="AuthEngine.parse_response", **response_dict)
+			return AuthEngineError(**response_dict)
 		else:
 			return_response = AuthEngineResponse(**response_dict)
 	return return_response
 
-@parse_response.register
-def _(response:Response, request:HttpRequest) -> AuthEngineResponse:
-	"""A dispatch of parse_response that takes .http.Response as the response.
+@_parse_response.register
+def _(response: Response, request: HttpRequest) -> AuthEngineResponse:
+	"""A dispatch of _parse_response that takes .http.Response as the response.
 	"""
-	return_response:AuthEngineResponse = AuthEngineError(loc="AuthEngine.parse_response")
+	return_response = AuthEngineError(
+		loc="AuthEngine._parse_response",
+		error="Unknown"
+	)
 	if response:
 		if response.is_json:
-			return_response = parse_response(response.json, request)
-		elif response.length < 512:		# content of small length are treated as message
-			return_response = AuthEngineResponse(message=response.content)
-			return_response._bool = True
+			return_response = _parse_response(response.json, request)
 		else:
-			return_response = AuthEngineResponse(large_text = response.content, loc = "AuthEngine.parse_response")
-			return_response._bool = True
+			return_response = AuthEngineResponse(message = response.content)
 	else:
-		return_response = AuthEngineError(loc = "AuthEngine.parse_response", **response.json)
+		return_response = response.error
+		return_response.prepend_loc("AuthEngine._parse_response()")
 	
 	return return_response
 
@@ -138,7 +149,7 @@ def to_session(user: User) -> dict[str, Any]:
 		return data
 	return {}
 	
-def set_session(request: HttpRequest, response: AuthEngineResponse) -> None:
+def set_session(request: HttpRequest, response: User) -> None:
 	"""Sets authentication session data in the HttpRequest instance. The data
 	is received from to_session(). The modification in the HttpRequest
 	instance's session applies only if the new session data differs from the
@@ -150,7 +161,7 @@ def set_session(request: HttpRequest, response: AuthEngineResponse) -> None:
 	response (AuthEngineResponse):
 		AuthEngineResponse to acquire the data from.
 	"""
-	if response and isinstance(response, User):
+	if response:
 		existing_auth = request.session.get(cfg._SESSION_KEY)
 		new_auth = to_session(response)
 		# session is updated only if auth is updated to prevent unnecessary database access
@@ -166,7 +177,7 @@ def signin(
 	realm: str = cfg.Provider.USERNAME_PASSWORD_REALM,
 	audience: str | None = None,
 	keep_signed_in: bool = False
-) -> AuthEngineResponse | User | None:
+) -> User | AuthEngineError:
 	"""Signs in a user with username, and password.
 
 	Upon authentication, it sets the auth session in the request and
@@ -200,13 +211,14 @@ def signin(
 		Whether or not to fetch a refresh token for refreshing the access token
 		next time.
 	"""
-	if not cfg._bool():
-		return
+	
+	# check configuration
+	cfg._bool()
 
 	# if keep_signed_in is set add offline_access in scope
 	if keep_signed_in:
 		scope += cfg.Provider.Scopes.REFRESH_TOKEN
-
+	
 	body = {
 		"grant_type": cfg.Provider.Grant.password,
 		"client_id": cfg._AUTH0_CLIENT_ID,
@@ -216,20 +228,22 @@ def signin(
 		"scope": scope,
 		"realm": realm,
 	}
-
+	
 	# optional parameters
 	if audience:
 		body["audience"] = audience
-
-	try:
-		signin_request = Request.post(cfg.Provider.URL.Auth.token, headers=PdefHeader.CONTENT_XWFU, body=body)
-		response = parse_response(signin_request, request=request)
-	except Exception as err:
-		response = AuthEngineError(loc="AuthEngine.signin", **(err.__dict__))
-		
-	# if response is true add session cookies in request
+	
+	signin_request = Request.post(cfg.Provider.URL.Auth.token, headers=PdefHeader.CONTENT_XWFU, body=body)
+	response = _parse_response(signin_request, request=request)
+	
+	# if response isn't User, then it's an error
+	if not isinstance(response, User):
+		response = AuthEngineError(**response.__dict__)
+		response.prepend_loc("AuthEngine.signin()")				# prepend the current location
+	
+	# if response is true (User) add session cookies in request
 	if request and response:
-		set_session(request, response)
+		set_session(request, response)		# type: ignore
 	
 	return response
 
@@ -237,7 +251,7 @@ def signin_code(
 		request: HttpRequest | None,
 		code: str,
 		redirect_uri: str
-) -> AuthEngineResponse | User | None:
+) -> User | AuthEngineError:
 	"""Signs in a user using the authorization code grant received
 	from various identity providers (IdPs), including social networks
 	(Google, Facebook, Twitter, LinkedIn), enterprise systems (Microsoft
@@ -256,8 +270,9 @@ def signin_code(
 	redirect_uri (str):
 		the URL for which the code was intended.
 	"""
-	if not cfg._bool():
-		return
+	
+	# check configuration
+	cfg._bool()
 	
 	body = {
 		"grant_type": cfg.Provider.Grant.authorization_code,
@@ -270,14 +285,17 @@ def signin_code(
 	if redirect_uri:
 		body["redirect_uri"] = redirect_uri
 
-	try:
-		code_request = Request.post(cfg.Provider.URL.Auth.token, headers=PdefHeader.CONTENT_XWFU, body=body)
-		response = parse_response(code_request, request=request)
-	except Exception as err:
-		response = AuthEngineError(loc="AuthEngine.signin_code", **(err.__dict__))
-
+	code_request = Request.post(cfg.Provider.URL.Auth.token, headers=PdefHeader.CONTENT_XWFU, body=body)
+	response = _parse_response(code_request, request=request)
+	
+	# if response isn't User, then it's an error
+	if not isinstance(response, User):
+		response = AuthEngineError(**response.__dict__)
+		response.prepend_loc("AuthEngine.signin_code()")		# prepend the current location
+	
+	# if response is true add session cookies in request
 	if request and response:
-		set_session(request, response)
+		set_session(request, response)		# type: ignore
 
 	return response
 
@@ -294,7 +312,7 @@ def signup(
 	nickname: str | None = None,
 	picture: str | None = None,
 	keep_signed_in: bool = False
-) -> AuthEngineResponse | User | None:
+) -> User | AuthEngineError:
 	"""Registers a user with Auth0 application using email address, password,
 	and additional information.
 		
@@ -342,8 +360,9 @@ def signup(
 		Whether or not to fetch a refresh token for refreshing the access token
 		next time.
 	"""
-	if not cfg._bool():
-		return
+	
+	# check configuration
+	cfg._bool()
 
 	body = {
 		"client_id": cfg._AUTH0_CLIENT_ID,
@@ -367,45 +386,43 @@ def signup(
 		body["picture"] = picture
 	if user_metadata:
 		body["user_metadata"] = user_metadata # type: ignore
-
-	try:
-		signup_request = Request.post(cfg.Provider.URL.Auth.dbcon_signup, headers=PdefHeader.CONTENT_JSON, body=body)
-		response = parse_response(signup_request, request=request)
-	except Exception as err:
-		response = AuthEngineError(loc="AuthEngine.signup", **(err.__dict__))
+	
+	signup_request = Request.post(cfg.Provider.URL.Auth.dbcon_signup, headers=PdefHeader.CONTENT_JSON, body=body)
+	response = _parse_response(signup_request, request=request)
 
 	if response:
 		response = signin(
 			request,
 			email,
 			password,
-			realm=cfg.Provider.USERNAME_PASSWORD_REALM,				# signed up users are stored in username-password realm
+			realm=cfg.Provider.USERNAME_PASSWORD_REALM,		# signed up users are stored in username-password realm
 			keep_signed_in=keep_signed_in
 		)
 
-	return response
+	return response							# type: ignore
 
-def change_password(
+def change_password_email(
 	email: str,
 	connection: str = cfg.Provider.USERNAME_PASSWORD_REALM,
 	organization:str | None = None
-) -> AuthEngineResponse | None:
+) -> AuthEngineResponse | AuthEngineError:
 	"""Sends a password change email to the email address if a user with that
 	email exists. 
-
+	
 	email (str):
 		email address of the user.
-
+	
 	connection (str):
 		The name of the database connection where the user was created. By
 		default, it uses the "Username-Password-Authentication" connection.
 	"""
-	if not cfg._bool():
-		return
-
+	
+	# check configuration
+	cfg._bool()
+	
 	if not connection:
 		connection = cfg.Provider.USERNAME_PASSWORD_REALM
-
+	
 	body = {
 		"client_id": cfg._AUTH0_CLIENT_ID,
 		"email": email,
@@ -416,21 +433,18 @@ def change_password(
 	if organization:
 		body["organization"] = organization
 
-	try:
-		change_request = Request.post(cfg.Provider.URL.Auth.dbcon_change_password, headers=PdefHeader.CONTENT_JSON, body=body)
-		response = parse_response(change_request, None)
-	except Exception as err:
-		response = AuthEngineError(loc="AuthEngine.change_password", **(err.__dict__))
-		
+	change_request = Request.post(cfg.Provider.URL.Auth.dbcon_change_password, headers=PdefHeader.CONTENT_JSON, body=body)
+	response = _parse_response(change_request, None)
+	
 	return response
 
 def refresh_access_token(
 		request:HttpRequest | None,
 		refresh_token:str,
 		scope: str = cfg.Provider.Scopes.DEFAULT
-	) -> AuthEngineResponse:
+	) -> User | AuthEngineError:
 	"""Refreshes an access token using the provided refresh_token.
-	 
+	
 	Upon refreshment returns a User instance; an AuthEngineError instance with
 	error information is returned otherwise. It sets the _token_refreshed flag
 	in the response which is used by other functions to decide whether or not
@@ -444,9 +458,10 @@ def refresh_access_token(
 		separated with whitespace. The default value is
 		cfg.Provider.Scopes.DEFAULT.
 	"""
-	if not cfg._bool():
-		return # type: ignore
-
+	
+	# check configuration
+	cfg._bool()
+	
 	body = {
 		"grant_type": cfg.Provider.Grant.refresh_token,
 		"client_id": cfg._AUTH0_CLIENT_ID,
@@ -454,83 +469,75 @@ def refresh_access_token(
 		"refresh_token": refresh_token,
 		"scope": scope,
 	}
-
-	try:
-		refresh_request = Request.post(cfg.Provider.URL.Auth.token, headers=PdefHeader.CONTENT_XWFU, body=body)
-		response = parse_response(refresh_request, request=request)
-		# if successfully refreshed token set _token_refreshed flag
-		if response and response:
-			set_session(request, response) 							# type: ignore
-			response._token_refreshed = True
-			
-	except Exception as err:
-		response = AuthEngineError(loc="AuthEngine.refresh_access_token", **(err.__dict__))
+	
+	refresh_request = Request.post(cfg.Provider.URL.Auth.token, headers=PdefHeader.CONTENT_XWFU, body=body)
+	response = _parse_response(refresh_request, request=request)
+	
+	# if response isn't User, then it's an error
+	if not isinstance(response, User):
+		response = AuthEngineError(**response.__dict__)
+		response.prepend_loc("AuthEngine.refresh_access_token()")		# prepend the current location
+	
+	# if successfully refreshed token set _token_refreshed flag
+	if response and response:
+		set_session(request, response) 							# type: ignore
+		response._token_refreshed = True
+	
 	return response
 
-def authenticate(request: HttpRequest) -> AuthEngineResponse | None:
+def authenticate(request: HttpRequest) -> User | AuthEngineError:
 	"""Authenticates a HttpRequest instance.
 
 	The authentication session data is retrieved from the request session and
-	passed to parse_response(). If parse_response() refreshes the tokens, the
+	passed to _parse_response(). If _parse_response() refreshes the tokens, the
 	session data is updated in HttpRequest. It returns the same instance as the
-	parse_response().
+	_parse_response().
 	
 	request (HttpRequest):
 		Django HttpRequest.
 	"""
-	if not cfg._bool():
-		return
-	auth_session:dict = request.session.get(cfg._SESSION_KEY) # type: ignore
-	response = parse_response(auth_session, request=request)
+	
+	# check configuration
+	cfg._bool()
+	
+	auth_session = request.session.get(cfg._SESSION_KEY)
+	response = _parse_response(auth_session, request=request)
+	
+	# if response isn't User, then it's an error
+	if not isinstance(response, User):
+		response = AuthEngineError(**response.__dict__)
+		response.prepend_loc("AuthEngine.authenticate()")		# prepend the current location
+	
 	# if _token_refreshed flag is set update session
 	if response and response._token_refreshed:
-		set_session(request, response)
+		set_session(request, response)			# type: ignore
+		
 	return response
 
-def authenticate_header(request: HttpRequest) -> AuthEngineResponse | None:
+def authenticate_header(request: HttpRequest) -> User | AuthEngineError:
 	"""Functions similarly to authenticate(), except that the tokens are parsed
 	from the request header instead of the request session. Returns the return
-	value of parse_response().
+	value of _parse_response().
 
 	request (HttpRequest):
 		Django HttpRequest.
 	"""
-	if not cfg._bool():
-		return
+	
+	# check configuration
+	cfg._bool()
+	
 	authorization = request.headers.get("Authorization", "")
 	splited_authorization = authorization.split()
 	if len(splited_authorization) == 2 and splited_authorization[0].lower() == "bearer":
 		token = splited_authorization[1]
-		response = parse_response({"access_token": token }, request=request)
+		response = _parse_response({"access_token": token }, request=request)
 	else:
-		response = AuthEngineError(loc="AuthEngine.authenticate_header", error="invalid_request", description="missing access_token parameter")
-	return response
-
-def get_user(request:HttpRequest | None, access_token: str | None) -> AuthEngineResponse | User | None:
-	"""Exchanges an access_token for a User instance. Returns User if
-	successful; AuthEngineError otherwise.
-
-	request (HttpRequest):
-		Django HttpRequest.
+		response = AuthEngineResponse(loc="AuthEngine.refresh_access_token")
+		response.error = AuthEngineError(loc="AuthEngine.authenticate_header", error="invalid_request", description="missing access_token parameter")
+	
+	# if response isn't User, then it's an error
+	if not isinstance(response, User):
+		response = AuthEngineError(**response.__dict__)
+		response.prepend_loc("AuthEngine.authenticate_header()")		# prepend the current location
 		
-	access_token (str):
-		access_token.
-	"""
-	if not cfg._bool():
-		return
-	response = None
-
-	headers = {
-		"Authorization": f"Bearer {access_token}"
-	}
-
-	if access_token:
-		try:
-			userinfo_request = Request.get(cfg.Provider.URL.Auth.userinfo, headers=headers)
-			json = userinfo_request.json
-			if json and "sub" in json:
-				response = User(**json)
-				response._request = request
-		except Exception as err:
-			response = AuthEngineError(loc="AuthEngine.get_user", **(err.__dict__))
 	return response
