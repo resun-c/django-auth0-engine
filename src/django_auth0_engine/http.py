@@ -2,8 +2,8 @@ from urllib.parse import urlparse, urlencode, quote
 from http.client import HTTPSConnection, HTTPConnection, HTTPResponse
 import json
 from typing import Any
-from pprint import pprint
-from django_auth0_engine.exceptions import AuthEngineError
+from pprint import pprint, pformat
+from django_auth0_engine.error import AuthEngineError
 from io import BytesIO, StringIO
 
 class PdefHeader:
@@ -43,14 +43,14 @@ class Response:
 		"""Returns a formatted string containing all the public [1] properties of the
 		response instance. The formatting utilizes the pprint.pformat() method.
 		"""
-		return pprint.pformat(dict(self))
+		return pformat(dict(self))
 	
 	def __repr__(self) -> str:
 		"""Returns a formatted string containing all properties, including both
 		public [1] and private [1] ones, of the response. The formatting utilizes the
 		pprint.pformat() method.
 		"""
-		return pprint.pformat(self.__dict__)
+		return pformat(self.__dict__)
 	
 	def __iter__(self):
 		"""This method returns an iterator object, enabling iteration through the
@@ -124,7 +124,7 @@ class Response:
 		return f
 	
 	@property
-	def error(self):
+	def error(self) -> AuthEngineError:
 		"""If any Error is encountered, it is returned as an AuthEngineError
 		instance.
 		"""
@@ -132,8 +132,10 @@ class Response:
 			if self.is_json:
 				return AuthEngineError(**self.json)
 			else:
-				return AuthEngineError(loc = "Response", error = "Unknown", description = str(self.content))
-	
+				return AuthEngineError(error = "Unknown", loc = "Response", description = str(self.content))
+			
+		return AuthEngineError(error = "Unknown", loc = "Response")
+
 	"""
 	[1] Public and Private variables are defined here:
 	https://docs.python.org/3/tutorial/classes.html#private-variables
@@ -213,7 +215,7 @@ class Request:
 		con, curl = self.con_url(url)
 		if body:
 			body = self.make_body(headers, body)
-			
+		
 		con.request(
 			"POST",
 			url=curl,
