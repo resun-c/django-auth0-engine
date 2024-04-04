@@ -6,32 +6,33 @@ The methods rely on the same set of constants that are fetched from settings.py
 (see apps.py).
 """
 
-from .response import AuthEngineResponse
-from .exceptions import AuthEngineError
-from .http import Request, PdefHeader
-from . import cfg
 import time
-from pprint import pprint
+from urllib.parse import quote
+from . import cfg
+from .exceptions import *
+from .response import AuthEngineResponse
+from .error import AuthEngineError
+from .http import Request, PdefHeader
+from .user import User, NoUser
 
 def _access_token() -> str | None:
 	"""Returns an access token for the Management API. It automatically
 	refreshes the token if no access token exists or the existing one is
 	expired. It raises an AuthEngineError if unable to fetch a token.
 	"""
-	if not cfg._bool():
-		return None
+	
+	# check configuration
+	cfg._bool()
 	
 	now = time.time() + 120				# added 120s with the time so that the
 										# token is usable for the next 2 minutes
 	if (not cfg._m_access_token) or (cfg._m_access_token_exp > 0 and cfg._m_access_token_exp < now):
-		if fetch := _fetch_management_token():
+		if _fetch_management_token():
 			return cfg._m_access_token
-		else:
-			raise fetch 				# type: ignore
 	else:
 		return cfg._m_access_token
 
-def _fetch_management_token() -> bool | AuthEngineError:
+def _fetch_management_token() -> bool:
 	"""Fetches a Management API access token using the token endpoint.
 	Returns True upon success; an AuthEngineError instance otherwise.
 	"""
@@ -47,24 +48,24 @@ def _fetch_management_token() -> bool | AuthEngineError:
 
 	payload = {}
 
-	try:
-		code_response = Request.post(cfg.Provider.URL.Auth.token, headers=PdefHeader.CONTENT_JSON, body=body)
-		if code_response:
-			payload = code_response.json
-	except:
-		pass
+	code_response = Request.post(cfg.Provider.URL.Auth.token, headers=PdefHeader.CONTENT_JSON, body=body)
+	if code_response:
+		payload = code_response.json
 
-	if "access_token" in payload:
+	if payload and "access_token" in payload:
 		cfg._m_access_token			= payload["access_token"]
 		cfg._m_access_token_exp		= payload["expires_in"]
 		cfg._m_access_token_type	= payload["token_type"]
 		return True
 	else:
-		error = AuthEngineError(loc="ManagementEngine.fetch_management_token", **payload)
 		cfg._m_access_token			= ""
 		cfg._m_access_token_exp		= 0
 		cfg._m_access_token_type	= ""
-	return error
+		
+		raise ManagementEngineException.NoAccessTokenReceived(
+			"ManagementEngine._fetch_management_token",
+			payload
+		)
 
 
 def _authorize_header(header):
@@ -72,8 +73,13 @@ def _authorize_header(header):
 	if "Authorization" not in header and (token := _access_token()):
 			header["Authorization"] = f"Bearer {token}"
 
-def get_user(sub, body:dict = {}) -> AuthEngineResponse:
-	"""Get the attributes of the user, defined in body.
+def get_user(
+		sub:str = "",
+		query:str = "",
+		body:dict = {}
+	) -> User | list[User] | AuthEngineError | NoUser:
+	"""If sub is defined gets a specific user. if query is defined, perform
+	searches based on the quesry string (https://auth0.com/docs/manage-users/user-search/user-search-query-syntax).
 
 	Upon success returns an AuthEngineResponse instance containing the
 	attributes. Otherwise, an AuthEngineError instance is returned.
@@ -84,25 +90,40 @@ def get_user(sub, body:dict = {}) -> AuthEngineResponse:
 	body (dict):
 		a dict containing the attributes to get.
 	"""
-	return_response:AuthEngineResponse = AuthEngineError(loc="ManagementEngine.update_user")
+	return_response = NoUser("ManagementEngine.get_user()")
 
-	url = cfg.Provider.URL.Management.user(sub)
+	if sub:
+		url = cfg.Provider.URL.Management.user(sub)
+	elif query:
+		url = cfg.Provider.URL.Management.users(quote(query))
+	else:
+		raise ManagementEngineException(
+			error = "Missing Required Parameter",
+			loc = "ManagementEngine.update_user",
+			description = "Either of sub or url is required."
+			)
+	
 	headers = PdefHeader.CONTENT_JSON | PdefHeader.ACCEPT_JSON
 	_authorize_header(headers)
 	
 	try:
-		get_response = Request.get(url, headers=headers, body=body)
-		if get_response:
-			return_response = AuthEngineResponse(**get_response.json)
-			return_response._bool = True
+		user_response = Request.get(url, headers=headers, body=body)
+		if user_response:
+			json_response = user_response.json
+			if isinstance(json_response, list):
+				return_response = list(map(lambda u: User(**u), json_response))
+			else:
+				return_response = User(**user_response.json)
 		else:
-			return_response = AuthEngineError(loc="ManagementEngine.update_user", **get_response.json)
+			raise ManagementEngineException(user_response.error, f"ManagementEngine.get_user()")
+	except ManagementEngineException:			# ignore the ManagementEngineException from try
+		raise
 	except Exception as err:
-		print(err.__dict__)
-		return_response = AuthEngineError(loc="ManagementEngine.update_user", **err.__dict__)
+		raise ManagementEngineException("Unable to get User", f"ManagementEngine.get_user()") from err
+	
 	return return_response
 
-def update_user(sub, body) -> AuthEngineResponse:
+def update_user(sub, body) -> AuthEngineResponse | AuthEngineError:
 	"""Updates the attributes of the user, defined in body.
 
 	Upon successful update, it returns an AuthEngineResponse instance
@@ -115,7 +136,7 @@ def update_user(sub, body) -> AuthEngineResponse:
 	body (dict):
 		a dict containing the attributes to update.
 	"""
-	return_response:AuthEngineResponse = AuthEngineError(loc="ManagementEngine.update_user")
+	return_response:AuthEngineResponse = AuthEngineError(loc="ManagementEngine.update_user()")
 
 	url = cfg.Provider.URL.Management.user(sub)
 	headers = PdefHeader.CONTENT_JSON | PdefHeader.ACCEPT_JSON
@@ -127,8 +148,10 @@ def update_user(sub, body) -> AuthEngineResponse:
 			return_response = AuthEngineResponse(**update_response.json)
 			return_response._bool = True
 		else:
-			return_response = AuthEngineError(loc="ManagementEngine.update_user", **update_response.json)
+			raise ManagementEngineException(update_response.error, f"ManagementEngine.update_user()")
+	except ManagementEngineException:			# ignore the ManagementEngineException from try
+		raise
 	except Exception as err:
-		print(err.__dict__)
-		return_response = AuthEngineError(loc="ManagementEngine.update_user", **err.__dict__)
+		raise ManagementEngineException("Unable to update User", f"ManagementEngine.update_user()") from err
+	
 	return return_response
