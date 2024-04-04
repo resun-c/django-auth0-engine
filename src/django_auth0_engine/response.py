@@ -1,4 +1,5 @@
 import pprint
+from typing import Any
 
 class AuthEngineResponse():
 	"""A base class for various responses returned by different functions of
@@ -9,16 +10,17 @@ class AuthEngineResponse():
 		keyword argument containing information of the response.
 	"""
 	def __init__(self, **kwarg) -> None:
-		self.access_token		:str
-		self.refresh_token		:str
-		self.id_token			:str
-		self.token_type			:str
-		self.expires_in			:int
-		self.message			:str
-		self._bool				:bool			=	False
-		self._token_refreshed	:bool			=	False
-		self.large_text			:str
-		self.loc				:str
+		self.access_token		:str				=	""
+		self.refresh_token		:str				=	""
+		self.id_token			:str				=	""
+		self.token_type			:str				=	""
+		self.message			:str				=	""
+		self.loc				:str				=	""
+		self.expires_in			:int				=	0
+		self._bool				:bool				=	True
+		self._token_refreshed	:bool				=	False
+		self._error				:Any				=	None
+		self._exception			:Exception			=	None	# type: ignore
 
 		self.__dict__.update(**kwarg)
 
@@ -30,10 +32,15 @@ class AuthEngineResponse():
 		return self._bool
 	
 	def __str__(self) -> str:
-		"""Returns a formatted string containing all the public [1] properties of the
-		response instance. The formatting utilizes the pprint.pformat() method.
 		"""
-		return pprint.pformat(dict(self))
+		"""
+		
+		if self._error:
+			return str(self._error)
+		elif self._exception:
+			return str(self._exception)
+
+		return str(self.message)
 	
 	def __repr__(self) -> str:
 		"""Returns a formatted string containing all properties, including both
@@ -58,7 +65,29 @@ class AuthEngineResponse():
 			return __value.decode()
 		else:
 			return __value
-
+	
+	@property
+	def error(self):
+		return self._error
+	
+	@error.setter
+	def error(self, __value):
+		self._error	= __value
+		
+	@property
+	def exception(self):
+		return self._exception
+	
+	@exception.setter
+	def exception(self, __value:Exception):
+		self._exception	= __value
+	
+	def append_loc(self, __loc):
+		self.loc = f"{self.loc}{f" / {__loc}" if __loc else ""}"
+		
+	def prepend_loc(self, __loc):
+		self.loc = f"{__loc}{f" / {self.loc}" if self.loc else ""}"
+	
 	"""
 	[1] Public and Private variables are defined here:
 	https://docs.python.org/3/tutorial/classes.html#private-variables
