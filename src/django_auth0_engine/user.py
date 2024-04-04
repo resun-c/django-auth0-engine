@@ -1,14 +1,14 @@
 """Support to access and manage users.
 """
 
-from math import fabs
 from typing import Any
 from django.http import HttpRequest
 from . import cfg
-from . import auth_engine as AuthEngine
-from . import management_engine as ManagementEngine
+# from . import management_engine as ManagementEngine
+# from . import auth_engine as AuthEngine
 from .oidc import OIDCClaimsStruct
-from .exceptions import AuthEngineError
+from .error import AuthEngineError
+from .exceptions import AuthEngineException
 from .response import AuthEngineResponse
 import copy
 
@@ -33,7 +33,24 @@ def _dict_diff(new:dict[str, Any], old:dict[str, Any]) -> dict[str, Any]:
 			diff[key] = val
 	return diff
 
-class User(OIDCClaimsStruct, AuthEngineResponse):
+class NoUser(AuthEngineError):
+	def __init__(
+			self,
+			loc, 
+			/, **kwarg
+		) -> None:
+		super().__init__(**kwarg)
+		
+		if loc:
+			self.loc = loc
+	
+	def __str__(self) -> str:
+		return self.__repr__()
+	
+	def __repr__(self) -> str:
+		return f"NoUser. Generated at {self.loc}."
+
+class User[UserType](OIDCClaimsStruct, AuthEngineResponse):
 	"""Class to access and manage a user. Each instance represents a registered
 	user and is constructed from information returned by successful
 	authentication.
@@ -88,7 +105,7 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 		
 		# init AuthEngineResponse
 		super(OIDCClaimsStruct, self).__init__(**kwarg)
-
+		
 		self._request					:HttpRequest | None		= None
 		self._db_backend				:Any | None				= cfg._USER_DB_BACKEND
 		self._db						:Any | None				= None
@@ -115,9 +132,11 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 	  			and hasattr(self, "id_token")
 			) or (		# for User initialized from management users endpoint
 				hasattr(self, "user_id")
-				and hasattr(self, "user_id")
+				and self.user_id
 			):
 			self._bool = True
+		else:
+			self._bool = False
 		
 		return self._bool
 
@@ -128,7 +147,7 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 		__user (User):
 			User to compare with.
 		"""
-		if isinstance(__user, User) and hasattr(__user, "sub"):
+		if isinstance(__user, User) and __user:
 			return self.sub == __user.sub
 		return False
 	
@@ -148,11 +167,39 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 	@staticmethod
 	def get(sub):
 		"""Gets a user's information and constructs a User object."""
-		if response := ManagementEngine.get_user(sub):
-			u = User(**response.__dict__)
-			u._bool = True					# set _bool manually as u doesn't have access_token and id_token
-			return u
-		return User()
+		from .management_engine import get_user
+		
+		try:
+			return get_user(sub)
+		except Exception as err:
+			return AuthEngineError(
+				error="Couldn't get user",
+				loc = "User.get()",
+				exception=err
+			)
+		
+		return NoUser("User.get()")
+	
+	@staticmethod
+	def search(query) -> list[UserType] | AuthEngineError | NoUser:
+		"""Searches user using User Search Query Syntax[1] and returns list of
+		User.
+		
+		1: https://auth0.com/docs/manage-users/user-search/user-search-query-syntax
+		"""
+		users = []
+		from .management_engine import get_user
+		
+		try:
+			users = get_user(query=query)
+		except Exception as err:
+			return AuthEngineError(
+				error="Couldn't get user",
+				loc = "User.search()",
+				exception=err
+			)
+		
+		return users						# type: ignore
 	
 	def set_db_backend(self, _db_backend:Any):
 		"""Sets a database backend for a User instance.
@@ -185,10 +232,9 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 		"""
 		for key in data:
 			if not self.valid_user_key(key):
-				raise AuthEngineError(
-					loc="User.validate_user_dict",
-					error="Invalid properties in User data",
-					description=f"""Additional properties not allowed: {key}.
+				raise AuthEngineException(
+					"Invalid properties in User data at User.validate_user_dict()",
+					f"""Additional properties not allowed: {key}.
 					Consider storing them in app_metadata or user_metadata. See
 					"Users Metadata" in https://auth0.com/docs/api/v2/changes
 					for more details"""
@@ -214,7 +260,7 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 		"""Updates user attributes on the Auth0 server. It validates the
 		provided data before updating. If no data is provided, it automatically
 		detects which fields have been changed and updates only those fields.
-		Returns an AuthEngineError instance if unable to update.
+		Raise an AuthEngineError instance if unable to update.
 
 		data (dict):
 			dict containing the attributes to be updated.
@@ -225,14 +271,17 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 		# get the changed data otherwise
 		else:
 			data = self.changed_user_data()
+			
+		from .management_engine import update_user
+		from .auth_engine import refresh_access_token
 
 		# if data is not empty update
 		if data:
-			updated_user = ManagementEngine.update_user(self.sub, data)
+			updated_user = update_user(self.sub, data)
 			# if data is updated initialized itself with the updated data
 			if updated_user:
 				# refresh the access token
-				refreshed_user = AuthEngine.refresh_access_token(self._request, self.refresh_token)
+				refreshed_user = refresh_access_token(self._request, self.refresh_token)
 				# update updated_user with new data receved after refreshing the access token
 				updated_user.__dict__.update(dict(refreshed_user))
 				# update the instance itself with the data of updated_user
@@ -244,5 +293,5 @@ class User(OIDCClaimsStruct, AuthEngineResponse):
 				return updated_user
 
 		# Not data to updated
-		return True
+		return False
 
