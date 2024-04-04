@@ -1,5 +1,5 @@
+from django_auth0_engine.exceptions import AuthEngineException
 from . import cfg
-from .exceptions import AuthEngineError
 from django.apps import AppConfig
 from django.conf import settings
 
@@ -38,26 +38,19 @@ class DjangoAuth0EngineConfig(AppConfig):
 		if hasattr(settings, "AUTH0_CLIENT_ID"):
 			cfg._AUTH0_CLIENT_ID = settings.AUTH0_CLIENT_ID
 		else:
-			raise AuthEngineError(
-				loc="DjangoAuth0EngineConfig", 
-				error="DjangoAuth0Engine Is Not Configured Correctly",
-				description="client_id missing"
-			)
+			raise AuthEngineException.MisconfiguredEngine("AUTH0_CLIENT_ID")
 
 		if hasattr(settings, "AUTH0_CLIENT_SECRET"):
 			cfg._AUTH0_CLIENT_SECRET	= settings.AUTH0_CLIENT_SECRET
 		else:
-			raise AuthEngineError(
-				loc="DjangoAuth0EngineConfig", 
-				error="DjangoAuth0Engine Is Not Configured Correctly",
-				description="client_secret is missing"
-			)
+			raise AuthEngineException.MisconfiguredEngine("AUTH0_CLIENT_SECRET")
 
 		if hasattr(settings, "AUTH0_DOMAIN"):
 			cfg._AUTH0_DOMAIN							=	settings.AUTH0_DOMAIN
 			cfg._AUTH0_ISSUER							=	cfg._AUTH0_ISSUER.format(cfg._AUTH0_DOMAIN)
 			cfg._AUTH0_JWKS_URL							=	cfg._AUTH0_JWKS_URL.format(cfg._AUTH0_DOMAIN)
 			cfg._MANAGEMENT_AUDIENCE					=	cfg._MANAGEMENT_AUDIENCE.format(cfg._AUTH0_DOMAIN)
+			
 			cfg.Provider.URL.Auth.token					=	cfg.Provider.URL.Auth.token.format(cfg._AUTH0_DOMAIN)
 			cfg.Provider.URL.Auth.dbcon_signup			=	cfg.Provider.URL.Auth.dbcon_signup.format(
 																cfg._AUTH0_DOMAIN
@@ -66,26 +59,19 @@ class DjangoAuth0EngineConfig(AppConfig):
 																cfg._AUTH0_DOMAIN
 															)
 			cfg.Provider.URL.Auth.userinfo				=	cfg.Provider.URL.Auth.userinfo.format(cfg._AUTH0_DOMAIN)
+			
 			cfg.Provider.URL.Management.users_endpoint	=	cfg.Provider.URL.Management.users_endpoint.format(
 																cfg._AUTH0_DOMAIN
 															)
 		else:
-			raise AuthEngineError(
-				loc="DjangoAuth0EngineConfig", 
-				error="DjangoAuth0Engine Is Not Configured Correctly",
-				description="domain is missing."
-			)
+			raise AuthEngineException.MisconfiguredEngine("AUTH0_DOMAIN")
 
 		if hasattr(settings, "AUTH0_AUDIENCE"):
 			cfg._AUTH0_AUDIENCE		= settings.AUTH0_AUDIENCE
 		elif cfg._AUTH0_CLIENT_ID:
 			cfg._AUTH0_AUDIENCE		= cfg._AUTH0_CLIENT_ID
 		else:
-			raise AuthEngineError(
-				loc="DjangoAuth0EngineConfig", 
-				error="DjangoAuth0Engine Is Not Configured Correctly",
-				description="audience is missing."
-			)
+			raise AuthEngineException.MisconfiguredEngine("AUTH0_AUDIENCE")
 
 		if hasattr(settings, "DEFAULT_SCOPES"):
 			cfg._DEFAULT_SCOPES = settings.DEFAULT_SCOPES
